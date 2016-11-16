@@ -1,0 +1,25 @@
+{
+  "name": "bogglechart",
+  "version": "0.0.1",
+  "description": "Charts for lemurs",
+  "main": "BoggleChart.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BrandwatchLtd/BoggleChart.git"
+  },
+  "keywords": [
+    "Charts"
+  ],
+  "author": "Ben Hall <benhall@brandwatch.com> (https://ben.am/)",
+  "license": {
+    "type": "MIT",
+    "url": "https://github.com/bhallstein/BoggleChart/blob/master/LICENSE"
+  },
+  "bugs": {
+    "url": "https://github.com/BrandwatchLtd/BoggleChart/issues"
+  },
+  "homepage": "https://github.com/BrandwatchLtd/BoggleChart#readme"
+}
