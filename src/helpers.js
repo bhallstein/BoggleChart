@@ -41,7 +41,6 @@ module.exports.getJSON = function(url, cb_success, cb_err, cb_progr) {
 	xhr.addEventListener('progress', cb_progr);
 	xhr.addEventListener('error', cb_err);
 	xhr.addEventListener('abort', cb_err);
-
 	xhr.open('get', url, true);
 	xhr.addEventListener('readystatechange', function() {
 		if (xhr.readyState == 4) {

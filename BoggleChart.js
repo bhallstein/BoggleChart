@@ -54,4 +54,7 @@ module.exports = {
 	LineChart: require('./src/LineChart'),
 	PieChart: require('./src/PieChart'),
 	RadarChart: require('./src/RadarChart'),
+
+	helpers: require('./src/helpers'),
+	math: require('./src/math'),
 };
