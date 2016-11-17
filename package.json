@@ -1,6 +1,6 @@
 {
   "name": "bogglechart",
-  "version": "0.0.1",
+  "version": "0.0.1b",
   "description": "Charts for lemurs",
   "main": "BoggleChart.js",
   "scripts": {
