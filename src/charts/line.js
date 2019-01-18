@@ -1,8 +1,8 @@
-var AnimQueue = require('./AnimQueue'),
-		helpers = require('./helpers'),
-		math = require('./math');
+var AnimQueue = require('../AnimQueue'),
+		helpers = require('../helpers'),
+		math = require('../math');
 
-module.exports = function(el_canvas, data, options, category_labels) {
+function line_chart(el_canvas, data, options, category_labels) {
 	var c = el_canvas.getContext('2d');
 
 	if (options.enableInteractions) {
@@ -136,7 +136,7 @@ module.exports = function(el_canvas, data, options, category_labels) {
 
 	Draw.Axes = function(data, opts) {
 		var base_y = gstate.h - gstate.offsets.b,
-				base_x = (options.valueLabels_inside ? 0 : gstate.offsets.l);
+				base_x = (options.valueLabels_inside ? 0 : gstate.offsets.l),
 		    max_x = gstate.w - gstate.offsets.r,
 				max_y = gstate.offsets.t;
 
@@ -235,20 +235,20 @@ module.exports = function(el_canvas, data, options, category_labels) {
 		}
 	};
 
-	Draw.Gridlines = function(data, opts) {
-		if (!opts.gridlines) return;
+	Draw.gridLines = function(data, opts) {
+		if (!opts.gridLines) return;
 
-		if (opts.gridlines.horizontal) {
+		if (opts.gridLines.horizontal) {
 			var usable_height = gstate.h - gstate.offsets.t - gstate.offsets.b,
 					increment     = opts.step * usable_height / (opts.max - opts.min),
 			    x             = gstate.offsets.l,
 			    x_right       = x + gstate.w - gstate.offsets.l - gstate.offsets.r,
-					x_left        = x - (opts.gridlines.ticks_h ? 6*gstate.pr : 0);
+					x_left        = x - (opts.gridLines.ticks_h ? 6*gstate.pr : 0);
 
 			c.beginPath();
-			c.lineWidth = (opts.gridlines.width_h || 0.75) * gstate.pr;
-			c.strokeStyle = (opts.gridlines.col_h || '#222');
-			if (options.gridlines.style_h == 'dashed') {
+			c.lineWidth = (opts.gridLines.width_h || 0.75) * gstate.pr;
+			c.strokeStyle = (opts.gridLines.col_h || '#222');
+			if (options.gridLines.style_h == 'dashed') {
 				c.setLineDash([ 2*gstate.pr, 5*gstate.pr, ]);
 			}
 
@@ -263,24 +263,24 @@ module.exports = function(el_canvas, data, options, category_labels) {
 		}
 		c.setLineDash([])
 
-		if (opts.gridlines.vertical) {
+		if (opts.gridLines.vertical) {
 			var usable_width = gstate.w - gstate.offsets.l - gstate.offsets.r,
 			    h_increment = usable_width / (data[0].data.length - 1),
 			    x = gstate.offsets.l,
 					y_top = gstate.offsets.t,
-					y_btm = gstate.h - gstate.offsets.b + (opts.gridlines.x_ticks ? 6*gstate.pr : 0);
+					y_btm = gstate.h - gstate.offsets.b + (opts.gridLines.x_ticks ? 6*gstate.pr : 0);
 
 			c.beginPath();
-			c.lineWidth = (opts.gridlines.width_v || 0.75) * gstate.pr;
-			c.strokeStyle = (opts.gridlines.col_v || '#222');
-			if (options.gridlines.style_v == 'dashed') {
+			c.lineWidth = (opts.gridLines.width_v || 0.75) * gstate.pr;
+			c.strokeStyle = (opts.gridLines.col_v || '#222');
+			if (options.gridLines.style_v == 'dashed') {
 				c.setLineDash([ 2*gstate.pr, 5*gstate.pr, ]);
 			}
 
 			var min = opts.axisY ? 1 : 0;
 			var max = opts.axisYRight ? 2 : 1;
 			for (var i=min; i <= data[0].data.length - max; ++i, x += h_increment) {
-				if (opts.gridlines.divisor_v && i%opts.gridlines.divisor_v !== 0) {
+				if (opts.gridLines.divisor_v && i%opts.gridLines.divisor_v !== 0) {
 					continue;
 				}
 				c.moveTo(x, y_btm);
@@ -317,7 +317,7 @@ module.exports = function(el_canvas, data, options, category_labels) {
 				arr.push(cur_x, ny(d[i]));
 				cur_x += h_increment;
 			}
-			line_segments = math.bezCurve(c, arr, tension);
+			var line_segments = math.bezCurve(c, arr, tension);
 			var topClip =
 				gstate.offsets.t +
 				(options.axisXTop ? dvals.axisWidth_xtop()/2 : 0) +
@@ -428,7 +428,7 @@ module.exports = function(el_canvas, data, options, category_labels) {
 		gstate.regen();
 		c.clearRect(0, 0, gstate.w, gstate.h);
 
-		Draw.Gridlines(data, options);
+		Draw.gridLines(data, options);
 		Draw.Axes(data, options);
 		Draw.ValueLabels();
 		Draw.CategoryLabels();
@@ -515,4 +515,7 @@ module.exports = function(el_canvas, data, options, category_labels) {
 	};
 
 	return exp;
-};
+}
+
+export default line_chart;
+
