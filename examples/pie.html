@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>Pie chart</title>
+</head>
+
+<body>
+
+  <h1>Pie chart</h1>
+  <div id="canvas-wrapper" style="width: 400px; height: 400px;"></div>
+  <div style="font-family: Hack, Consolas, monospace">
+    <pre id="script-preview"></pre>
+  </div>
+
+  <script src="dist/example.js"></script>
+  <script id="init">
+    const div = document.querySelector('#canvas-wrapper');
+    const canvas = bogglechart.createCanvas(div);
+    const pie_chart = bogglechart.pie_chart(
+      canvas,
+      [
+        {
+          title: 'Muffins',
+          color: 'blue',
+          value: Math.random()*0.75 + 0.25,
+        },
+        {
+          title: 'Lemurs',
+          color: 'yellow',
+          value: Math.random()*0.75 + 0.25,
+        },
+      ],
+      {
+        w_inner_line: 1.5,
+        w_outer_line: 1.5,
+        col_background: 'white',
+        cutout_radius: 0.5,
+      }
+    );
+    pie_chart.draw();
+    pie_chart.setInnerLabel('Muffins or Lemurs?');
+  </script>
+  <script>
+    (function() {
+      const s = document.querySelector('#init').innerHTML;
+      document.querySelector('#script-preview').textContent = s;
+    })();
+  </script>
+
+</body>
+</html>
+

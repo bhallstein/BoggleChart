@@ -1,6 +1,6 @@
-var AnimQueue = require('../AnimQueue'),
-    helpers = require('../helpers'),
-    math = require('../math');
+import AnimQueue from '../AnimQueue';
+import helpers from '../helpers';
+import math from '../math';
 
 function pie_chart(el_canvas, data, options, click_callback) {
   var c = el_canvas.getContext('2d');

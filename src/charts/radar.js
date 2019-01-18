@@ -1,6 +1,6 @@
-var AnimQueue = require('../AnimQueue'),
-    helpers = require('../helpers'),
-    math = require('../math');
+import AnimQueue from '../AnimQueue';
+import helpers from '../helpers';
+import math from '../math';
 
 function radar_chart(el_canvas, data, options) {
   var c = el_canvas.getContext('2d');
@@ -42,10 +42,10 @@ function radar_chart(el_canvas, data, options) {
 
   function each_data_item(cb) {
     var p_centre = {
-          x: gstate.w/2 - 0.5,
-          y: gstate.h/2 - 0.5,
-        },
-        angle = Math.PI * 2 / data.data.length;
+      x: gstate.w/2 - 0.5,
+      y: gstate.h/2 - 0.5,
+    },
+    angle = Math.PI * 2 / data.data.length;
 
     for (var i=0; i < data.data.length; ++i) {
       var p_from = {
@@ -61,7 +61,7 @@ function radar_chart(el_canvas, data, options) {
   Draw.Axes = function() {
     if (options.disableAxes) return;
     each_data_item(function(point, p_centre, angle, dataitem, i) {
-    c.beginPath();
+      c.beginPath();
       if (options.axisNHighlight && i%options.axisNHighlight == 0) {
         c.lineWidth = (options.axisNWidth || 2) * gstate.pr;
         c.strokeStyle = (options.axisNColor || 'black');
@@ -122,7 +122,9 @@ function radar_chart(el_canvas, data, options) {
   };
 
   Draw.Labels = function() {
-    each_data_item(Draw.Label);
+    if (options.labels) {
+      each_data_item(Draw.Label);
+    }
   };
 
   Draw.All = function() {

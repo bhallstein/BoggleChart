@@ -139,7 +139,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
     },
   };
 
-  const animQueue = AnimQueue();
+  var animQueue = AnimQueue();
   animQueue.setDefaultDrawTask(Draw.All);
 
   Draw.SetValueLblFont = function() {
