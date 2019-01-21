@@ -142,7 +142,7 @@ BoggleChart.ExplosionMap = function(el_ctnr, el_clock, data_url, area, el_lowPer
 		el_ctnr.appendChild(g.el_img);
 
 		// Create canvas
-		g.el_canv = BoggleChart.createCanvas(el_ctnr);
+		g.el_canv = BoggleChart.create_canvas(el_ctnr);
 		g.el_canv.style.position = 'relative';
 		g.el_canv.style.zIndex = 2;
 		g.el_canv.style.opacity = 0;

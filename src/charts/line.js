@@ -2,509 +2,557 @@ import AnimQueue from '../AnimQueue';
 import helpers from '../helpers';
 import math from '../math';
 
-function line_chart(el_canvas, data, options, category_labels) {
-  var c = el_canvas.getContext('2d');
-  options = options || { };
 
-  el_canvas.addEventListener('BoggleChart:resize', cb_drawAll);
-  if (options.enableInteractions) {
+const default_opts = {
+  min: 0,
+  max: 100,
+  step: (g, opts) => (opts.max - opts.min) / 5,
+
+  x_axis:       true,
+  x_axis_width: 1,
+  x_axis_color: 'black',
+
+  top_x_axis:       false,
+  top_x_axis_width: 1,
+  top_x_axis_color: 'black',
+
+  y_axis:       true,
+  y_axis_width: 1,
+  y_axis_color: 'black',
+
+  right_y_axis:       false,
+  right_y_axis_width: 1,
+  right_y_axis_color: 'black',
+
+  labels_y:             true,
+  labels_y_padding:     10,
+  labels_y_fontsize:    (g) => 0.035 * g.h,
+  labels_y_color:       'black',
+  labels_y_labelOrigin: true,
+  labels_y_labelMax:    true,
+  labels_y_unit:        '',
+
+  labels_x:          true,
+  labels_x_padding:  (g) => 0.02 * g.h,
+  labels_x_fontsize: (g) => 0.04 * g.h,
+  labels_x_color:    'black',
+
+  gridlines_x:       false,   // NB gridlines_x can be false while _ticks
+  gridlines_x_ticks: false,   //    can be true
+  gridlines_x_color: 'black',
+  gridlines_x_width: 0.75,
+  gridlines_x_style: 'solid',
+  gridlines_x_divisor: null,
+
+  gridlines_y:       false,
+  gridlines_y_ticks: false,
+  gridlines_y_color: 'black',
+  gridlines_y_width: 0.75,
+  gridlines_y_style: 'solid',
+
+  interactions:                 false,
+  hover_dropline_width:         1,
+  hover_dropline_color:         'black',
+  hover_value_background_color: '#ddd',
+  hover_value_foreground_color: 'black',
+  hover_value_draw_callback:    null,
+};
+
+
+function line_chart(el_canvas, data, options, category_labels) {
+  const c = el_canvas.getContext('2d');
+
+
+  // Line animation
+  // ----------------------------------------------------------
+
+  const animQueue = AnimQueue();
+  animQueue.setDefaultDrawTask(draw_all);
+  data.forEach(d => d.progress_points = 0);
+  data.forEach(d => d.progress = 0);
+
+
+  // Mouse events
+  // ----------------------------------------------------------
+
+  if (options.interactions) {
     el_canvas.addEventListener('mousemove', mouse_move);
     el_canvas.addEventListener('mouseenter', mouse_enter);
     el_canvas.addEventListener('mouseleave', mouse_leave);
   }
-  function cb_drawAll() {
-    Draw.All();
-  }
-
-  // Mouse events
-  // ----------------------------------------------------------
+  let hover_x;  // NB relative to axis_frame.l
   function mouse_enter() { }
   function mouse_leave() {
-    gstate.hover_x = null;
+    hover_x = null;
     animQueue.triggerDraw();
   }
   function mouse_move(ev) {
-    var p = helpers.getOffset_canv(ev, el_canvas),
-        usable_width = gstate.w - gstate.offsets.l - gstate.offsets.r;
-    p.x -= gstate.offsets.l;
-    gstate.hover_x = p.x;
+    const p = helpers.getOffset_canv(ev, el_canvas);
+    hover_x = p.x - axis_frame.l;
     animQueue.triggerDraw();
   }
   function unbind() {
-    el_canvas.removeEventListener('BoggleChart:resize', cb_drawAll);
+    el_canvas.removeEventListener('BoggleChart:resize', cb_drawall);
     el_canvas.removeEventListener('mousemove', mouse_move);
     el_canvas.removeEventListener('mouseenter', mouse_enter);
     el_canvas.removeEventListener('mouseleave', mouse_leave);
+  }
+  el_canvas.addEventListener('BoggleChart:resize', draw_all);
+
+
+  // Options
+  // ----------------------------------------------------------
+
+  let o;   // Current calculated options
+  function get_opts() {
+    const opts = Object.assign({}, default_opts, options);
+
+    // Process function options
+    Object.keys(opts)
+      .filter(k => typeof opts[k] === 'function')
+      .forEach(k => opts[k] = opts[k](g, opts));
+
+    return opts;
   }
 
 
   // Drawing
   // ----------------------------------------------------------
-  var Draw = { };
-  var dvals = {
-    labelROffset: function() {
-      return 4 * gstate.pr;
-    },
 
-    axisWidth_x: function() {
-      return (options.axisWidthX || 1) * gstate.pr;
-    },
-    axisWidth_xtop: function() {
-      return (options.axisWidthXTop || 1) * gstate.pr;
-    },
+  function m(x) { return g.pr * x; }
 
-    catLabel_paddingTop: function() {
-      return (
-        options.categoryLabels_padding ?
-        options.categoryLabels_padding * gstate.pr :
-        gstate.h * 0.02
-      );
-    },
-    catLabel_paddingBtm: function() {
-      return dvals.catLabel_fontsize() * 0.5;
-    },
-    catLabel_fontsize: function() {
-      return (
-        options.categoryLabels_fontsize ?
-        options.categoryLabels_fontsize * gstate.pr :
-        gstate.h * 0.04
-      );
-    },
-
-    btm_section_height: function() {
-      if (!options.categoryLabels) return 2 * gstate.pr;
-      return dvals.catLabel_paddingTop() +
-        dvals.catLabel_fontsize() +
-        dvals.catLabel_paddingBtm();
-    },
-    top_section_height: function() {
-      if (options.valueLabels && options.valueLabels_labelMax) {
-        return dvals.valueLabel_fontsize();
-      }
-      return 2*gstate.pr;
-    },
-
-    valueLabel_fontsize: function() {
-      return (
-        options.valueLabels_fontsize ?
-        options.valueLabels_fontsize * gstate.pr :
-        gstate.h * 0.035
-      );
-    },
-    valueLabel_paddingR: function() { return (options.valueLabels_padding || 4) * gstate.pr; },
-    valueLabel_paddingL: function() { return dvals.valueLabel_paddingR() * 0.5; },
-    valueLabel_maxWidth: function() {
-      Draw.SetValueLblFont();
-      var max = 0;
-      for (var i=options.min; i <= options.max; i += (options.step || 1)) {
-        var txt = i.toString();
-        if (options.valueLabels_appendUnit) txt += options.valueLabels_appendUnit;
-        var w = c.measureText(txt).width;
-        if (w > max) max = w;
-      }
-      return max;
-    },
-  };
-  var gstate = {
+  // Cache pixel ratio, canvas dimensions for convenience/performance
+  const g = {
     pr: null,
     w:  null,
     h:  null,
-    offsets: null,
-    hover_x: null,  // relative to the inner graph area
 
     regen: function() {
-      gstate.pr = el_canvas.pixel_ratio,
-      gstate.w = el_canvas.width;
-      gstate.h = el_canvas.height;
-      gstate.offsets = {
-        l: dvals.valueLabel_maxWidth() + dvals.valueLabel_paddingL() + dvals.valueLabel_paddingR(),//  - 0.5,
-        r: 4 * gstate.pr,//t - 0.5,
-        b: dvals.btm_section_height(),//- 0.5,
-        t: dvals.top_section_height(),
-      };
+      g.pr = el_canvas.pixel_ratio,
+      g.w = el_canvas.width;
+      g.h = el_canvas.height;
     },
   };
 
-  Draw.c_setLblFont = function() {
-    var fontsize = 0.048 * gstate.h;
-    if (fontsize > 17 * gstate.pr) {
-      fontsize = 17 * gstate.pr;
-    }
+  const axis_frame = {
+    regen: function() {
+      axis_frame.l = max_label_width() + o.labels_y_padding + label_padding_left();
+      axis_frame.r = m(4);
+      axis_frame.b = btm_section_height();
+      axis_frame.t = top_section_height();
+    },
+  };
+
+
+  // helpers
+
+  function set_y_label_font() {
+    const fontsize = Math.min(0.048 * g.h, m(17));
     c.font = '200 ' + fontsize + 'px Roboto';
     c.textBaseline = 'middle';
     c.textAlign = 'end';
-  };
+  }
 
-  Draw.Axes = function(data, opts) {
-    var base_y = gstate.h - gstate.offsets.b,
-        base_x = (options.valueLabels_inside ? 0 : gstate.offsets.l),
-        max_x = gstate.w - gstate.offsets.r,
-        max_y = gstate.offsets.t;
+  function max_label_width() {
+    set_y_label_font();
 
-    // X axis
-    c.beginPath();
-    c.moveTo(base_x, base_y);
-    c.strokeStyle = options.axisColorX || '#222';
-    c.lineWidth = dvals.axisWidth_x();
-    c.lineTo(max_x, base_y);
-    c.stroke();
+    let max = 0;
+    for (let i = o.min; i <= o.max; i += o.step) {
+      const txt = i.toString() + o.labels_y_unit;
+      max = Math.max(max, c.measureText(txt).width);
+    }
 
-    // Top X axis
-    if (options.axisXTop) {
+    return max;
+  }
+
+  function label_padding_left() {
+    return o.labels_y_padding * 0.5;
+  }
+
+  function btm_section_height() {
+    return o.labels_x ? o.labels_x_fontsize * 2 : m(2);
+  }
+
+  function top_section_height() {
+    return (o.labels_y && o.labels_y_labelMax) ? o.labels_y_fontsize : m(2);
+  }
+
+
+  function draw_axes() {
+    const y1 = g.h - axis_frame.b;
+    const x1 = axis_frame.l;
+    const x2 = g.w - axis_frame.r;
+    const y2 = axis_frame.t;
+
+    if (o.x_axis) {
       c.beginPath();
-      c.moveTo(base_x, max_y);
-      c.strokeStyle = options.axisColorXTop || '#222';
-      c.lineWidth = dvals.axisWidth_xtop();
-      c.lineTo(max_x, max_y);
+      c.moveTo(x1, y1);
+      c.strokeStyle = o.x_axis_color;
+      c.lineWidth = o.x_axis_width;
+      c.lineTo(x2, y1);
       c.stroke();
     }
 
-    // Y axis
-    c.beginPath();
-    c.moveTo(base_x, base_y);
-    c.strokeStyle = options.axisColorY || '#222';
-    c.lineWidth = (options.axisWidthY || 1) * gstate.pr;
-    c.lineTo(base_x, max_y);
-    c.stroke();
-
-    // Right Y axis
-    c.beginPath();
-    c.moveTo(max_x, base_y);
-    c.strokeStyle = options.axisColorYRight || '#222';
-    c.lineWidth = (options.axisWidthYRight || 1) * gstate.pr;
-    c.lineTo(max_x, max_y);
-    c.stroke();
-  };
-
-  Draw.SetValueLblFont = function() {
-    c.font = '400 ' + dvals.valueLabel_fontsize() + 'px Roboto';
-  };
-  Draw.ValueLabels = function() {
-    if (!options.valueLabels) return;
-
-    var usable_height = gstate.h - gstate.offsets.t - gstate.offsets.b,
-        increment     = options.step * usable_height / (options.max - options.min),
-        x_right       = gstate.offsets.l - dvals.valueLabel_paddingR();
-
-    Draw.SetValueLblFont();
-    c.textBaseline = 'middle';
-    c.textAlign = 'end';
-    c.fillStyle = (options.valueLabels_color || 'black');
-
-    var step = options.step || 1,
-        min = options.valueLabels_labelOrigin ? options.min : options.min + step,
-        max = options.valueLabels_labelMax ? options.max : options.max - step;
-    for (var i=min; i <= max; i += step) {
-      var txt = i;
-      if (options.valueLabels_appendUnit) txt += options.valueLabels_appendUnit;
-      var y_rel = (i - options.min) / (options.max - options.min),
-          y = gstate.h - gstate.offsets.b - usable_height + (1 - y_rel) * usable_height;
-      c.fillText(txt, x_right, y);
+    if (o.top_x_axis) {
+      c.beginPath();
+      c.moveTo(x1, y2);
+      c.strokeStyle = o.top_x_axis_color;
+      c.lineWidth = o.top_x_axis_width;
+      c.lineTo(x2, y2);
+      c.stroke();
     }
-  };
-  Draw.CategoryLabels = function() {
-    if (!options.categoryLabels) return;
+
+    if (o.y_axis) {
+      c.beginPath();
+      c.moveTo(x1, y1);
+      c.strokeStyle = o.y_axis_color;
+      c.lineWidth = o.y_axis_width;
+      c.lineTo(x1, y2);
+      c.stroke();
+    }
+
+    if (o.right_y_axis) {
+      c.beginPath();
+      c.moveTo(x2, y1);
+      c.strokeStyle = o.right_y_axis_color;
+      c.lineWidth = o.right_y_axis_width;
+      c.lineTo(x2, y2);
+      c.stroke();
+    }
+  }
+
+
+  function draw_valueLabels() {
+    if (!o.labels_y) {
+      return;
+    }
+
+    const h         = g.h - axis_frame.t - axis_frame.b;
+    const increment = o.step * h / (o.max - o.min);
+    const x         = axis_frame.l - o.labels_y_padding;
+
+    set_y_label_font();
+    c.textBaseline = 'middle';
+    c.textAlign    = 'end';
+    c.fillStyle    = o.labels_y_color;
+
+    const min = o.labels_y_labelOrigin ? o.min : o.min + o.step;
+    const max = o.labels_y_labelMax ? o.max : o.max - o.step;
+
+    for (let i = min; i <= max; i += o.step) {
+      const txt = i.toString() + o.labels_y_unit;
+
+      const y_rel = (i - o.min) / (o.max - o.min);
+      const y = g.h - axis_frame.b - h + (1 - y_rel) * h;
+
+      c.fillText(txt, x, y);
+    }
+  }
+
+
+  function draw_categoryLabels() {
+    if (!o.labels_x) {
+      return;
+    }
 
     c.beginPath();
-    c.fillStyle = options.categoryLabels_color || 'black';
+    c.fillStyle = o.labels_x_color;
 
-    c.font = '400 ' + dvals.catLabel_fontsize() + 'px Roboto';
+    c.font = '400 ' + o.labels_x_fontsize + 'px Roboto';
     c.textBaseline = 'top';
     c.textAlign = 'center';
 
-    var usable_width = gstate.w - gstate.offsets.l - gstate.offsets.r,
-        h_increment = usable_width / (data[0].data.length - 1),
-        y = gstate.h - dvals.catLabel_paddingBtm() - dvals.catLabel_fontsize();
+    const w = g.w - axis_frame.l - axis_frame.r;
+    const h_increment = w / (data[0].data.length - 1);
+    const y = g.h - 1.5 * o.labels_x_fontsize;
 
-    if (typeof category_labels == 'function') {
-      for (var i=0, n = data[0].data.length; i < n; ++i) {
-        var lbl = category_labels(i);
-        if (lbl === false || lbl === null) continue;
-
-        var x = gstate.offsets.l + i * h_increment;
-        c.moveTo(x, y);
-        c.fillText(lbl, x, y);
-      }
+    let labels;
+    if (typeof category_labels === 'function') {
+      labels = data[0].data
+        .slice(0)
+        .map((_, i) => category_labels(i));
     }
     else {
-      for (var i=0, n = category_labels.length; i < n; ++i) {
-        if (!category_labels[i]) continue;
-        var x = gstate.offsets.l + i * h_increment;
-        c.moveTo(x, y);
-        c.fillText(category_labels[i], x, y);
-      }
+      labels = category_labels.slice(0);
     }
-  };
 
-  Draw.gridLines = function(data, opts) {
-    if (!opts.gridLines) return;
+    labels.filter(x => !!x).forEach((lbl, i) => {
+      const x = axis_frame.l + i * h_increment;
+      c.moveTo(x, y);
+      c.fillText(lbl, x, y);
+    });
+  }
 
-    if (opts.gridLines.horizontal) {
-      var usable_height = gstate.h - gstate.offsets.t - gstate.offsets.b,
-          increment     = opts.step * usable_height / (opts.max - opts.min),
-          x             = gstate.offsets.l,
-          x_right       = x + gstate.w - gstate.offsets.l - gstate.offsets.r,
-          x_left        = x - (opts.gridLines.ticks_horizontal ? 6*gstate.pr : 0);
 
-      c.beginPath();
-      c.lineWidth = (opts.gridLines.width_h || 0.75) * gstate.pr;
-      c.strokeStyle = (opts.gridLines.col_h || '#222');
-      if (options.gridLines.style_horizontal == 'dashed') {
-        c.setLineDash([ 2*gstate.pr, 5*gstate.pr, ]);
-      }
-
-      var y = gstate.h - gstate.offsets.b;
-      var max = opts.axisXTop ? opts.max - 1 : opts.max;
-      for (var i = opts.min + opts.step; i <= max; i += opts.step) {
-        y -= increment;
-        c.moveTo(x_left, y);
-        c.lineTo(x_right, y);
-      }
-      c.stroke();
-    }
-    c.setLineDash([])
-
-    if (opts.gridLines.vertical) {
-      var usable_width = gstate.w - gstate.offsets.l - gstate.offsets.r,
-          h_increment = usable_width / (data[0].data.length - 1),
-          x = gstate.offsets.l,
-          y_top = gstate.offsets.t,
-          y_btm = gstate.h - gstate.offsets.b + (opts.gridLines.ticks_vertical ? 6*gstate.pr : 0);
-
-      c.beginPath();
-      c.lineWidth = (opts.gridLines.width_v || 0.75) * gstate.pr;
-      c.strokeStyle = (opts.gridLines.col_v || '#222');
-      if (options.gridLines.style_vertical == 'dashed') {
-        c.setLineDash([ 2*gstate.pr, 5*gstate.pr, ]);
-      }
-
-      var min = opts.axisY ? 1 : 0;
-      var max = opts.axisYRight ? 2 : 1;
-      for (var i=min; i <= data[0].data.length - max; ++i, x += h_increment) {
-        if (opts.gridLines.divisor_v && i%opts.gridLines.divisor_v !== 0) {
-          continue;
+  function draw_gridlines() {
+    if (o.gridlines_y || o.gridlines_y_ticks) {
+      function draw_gridlines_y(x_left, x_right, dashed) {
+        c.beginPath();
+        c.lineWidth   = o.gridlines_y_width;
+        c.strokeStyle = o.gridlines_y_color;
+        if (dashed) {
+          c.setLineDash([ m(2), m(5), ]);
         }
-        c.moveTo(x, y_btm);
-        c.lineTo(x, y_top);
+
+        const h         = g.h - axis_frame.t - axis_frame.b;
+        const increment = o.step * h / (o.max - o.min);
+        const max       = o.top_x_axis ? o.max - 1 : o.max;
+
+        let y = g.h - axis_frame.b;
+        for (let i = o.min + o.step; i <= max; i += o.step) {
+          y -= increment;
+          c.moveTo(x_left, y);
+          c.lineTo(x_right, y);
+        }
+
+        c.stroke();
+        c.setLineDash([]);
       }
-      c.stroke();
+
+      if (o.gridlines_y_ticks) {
+        draw_gridlines_y(axis_frame.l - m(6), axis_frame.l, false);
+      }
+      if (o.gridlines_y) {
+        draw_gridlines_y(g.w - axis_frame.r, axis_frame.l, o.gridlines_y_style === 'dashed');
+      }
     }
-    c.setLineDash([])
-  };
 
-  Draw.DataLine = function(dataset, opts, percent_to_draw, points_fade) {
-    var lineWidth = (dataset.lineWidth || 1.75) * gstate.pr;
-    c.lineWidth = lineWidth;
+    if (o.gridlines_x || o.gridlines_x_ticks) {
+      function draw_gridlines_x(y_btm, y_top, dashed) {
+        c.beginPath();
+        c.lineWidth   = o.gridlines_x_width;
+        c.strokeStyle = o.gridlines_x_color;
+        if (dashed) {
+          c.setLineDash([ m(2), m(5) ]);
+        }
 
-    var d = dataset.data,
-        usable_width = gstate.w - gstate.offsets.l - gstate.offsets.r,
-        h_increment = usable_width / (d.length - 1),
-        cur_x = gstate.offsets.l,
-        tension = dataset.tension || 0.32;
+        const w         = g.w - axis_frame.l - axis_frame.r;
+        const increment = w / (data[0].data.length - 1);
+        const min       = o.y_axis ? 1 : 0;
+        const max       = o.right_y_axis ? 2 : 1;
+
+        for (let i = min; i <= data[0].data.length - max; ++i) {
+          if (o.gridlines_x_divisor && i%gridlines_x_divisor !== 0) {
+            continue;
+          }
+          const x = axis_frame.l + increment * i;
+          c.moveTo(x, y_btm);
+          c.lineTo(x, y_top);
+        }
+        c.stroke();
+        c.setLineDash([]);
+      }
+
+      if (o.gridlines_x_ticks) {
+        draw_gridlines_x(g.h - axis_frame.b + m(6), g.h - axis_frame.b, false);
+      }
+      if (o.gridlines_x) {
+        draw_gridlines_x(g.h - axis_frame.b, axis_frame.t, o.gridlines_x_style === 'dashed');
+      }
+    }
+  }
+
+
+  function draw_dataLine(line) {
+    const line_width = m(line.lineWidth || 1.75);
+    c.lineWidth = line_width;
+
+    const d         = line.data;
+    const w         = g.w - axis_frame.l - axis_frame.r;
+    const increment = w / (d.length - 1);
+    let cur_x       = axis_frame.l;
+    const tension   = line.tension || 0.32;
 
     function ny(y) {
-      var y_range = gstate.h - gstate.offsets.t - gstate.offsets.b;
-      y = y / opts.max * y_range;
-      return gstate.h - gstate.offsets.b - y;
+      const y_range = g.h - axis_frame.t - axis_frame.b;
+      const y_norm = y / o.max * y_range;
+      return g.h - axis_frame.b - y_norm;
     }
 
     // Lines
-    if (dataset.drawLines !== false) {
+    if (line.drawLines !== false) {
       c.beginPath();
-      c.strokeStyle = dataset.color || 'blue';
+      c.strokeStyle = line.color || 'black';
 
-      var arr = [ ];
-      for (var i=0; i < d.length; ++i) {
-        arr.push(cur_x, ny(d[i]));
-        cur_x += h_increment;
-      }
-      var line_segments = math.bezCurve(c, arr, tension);
-      var topClip =
-        gstate.offsets.t +
-        (options.axisXTop ? dvals.axisWidth_xtop()/2 : 0) +
-        lineWidth/2;
-      for (var i=0, l=line_segments.length * percent_to_draw/100; i < l; i += 2) {
-        c.lineTo(line_segments[i], Math.max(line_segments[i+1], topClip));
+      const arr = d.reduce((accum, di, i) => {
+        accum.push(axis_frame.l + i * increment, ny(di));
+        return accum;
+      }, [ ]);
+
+      const line_segments = math.bezCurve(c, arr, tension);
+      const top_clip =
+        axis_frame.t +
+        (o.top_x_axis ? o.top_x_axis_width/2 : 0) +
+        line_width/2;
+
+      for (let i = 0, l = line_segments.length * line.progress/100; i < l; i += 2) {
+        c.lineTo(line_segments[i], Math.max(line_segments[i+1], top_clip));
       }
       c.stroke();
     }
 
     // Points
-    if (dataset.drawPoints) {
-      points_fade = points_fade/100 || 1;
+    if (line.drawPoints) {
       c.beginPath();
-      c.fillStyle = dataset.pointColor || '#222';
-      c.globalAlpha = points_fade;
-      cur_x = gstate.offsets.l;
-      for (var i=0; i < d.length; ++i, cur_x += h_increment) {
-        var y = ny(d[i]);
+      c.fillStyle = line.pointColor || 'black';
+      c.globalAlpha = line.progress_points / 100;
+      cur_x = axis_frame.l;
+      for (let i = 0; i < d.length; ++i, cur_x += increment) {
+        const y = ny(d[i]);
         c.moveTo(cur_x, y);
-        c.arc(cur_x, y, gstate.pr * (dataset.pointRadius || 3.5), 0, 2*Math.PI);
+        c.arc(cur_x, y, m(line.pointRadius || 3.5), 0, 2*Math.PI);
       }
       c.fill();
       c.globalAlpha = 1;
     }
-  };
+  }
 
-  Draw.Hover = function() {
-    if (gstate.hover_x === null) return;
 
-    // Lock position to x value corresponding to nearest data point
-    var item_points = data[0].data,
-        n_datapoints = item_points.length,
-        usable_width = gstate.w - gstate.offsets.l - gstate.offsets.r,
-        x_norm = gstate.hover_x / usable_width;
+  function draw_hover() {
+    if (!hover_x) {
+      return;
+    }
 
-    if (x_norm < 0 || x_norm > 1) return;
-    var x_ind = parseInt(x_norm * (n_datapoints-1) + 0.5),
-        hover_x = x_ind * usable_width / (n_datapoints - 1),
-        value = item_points[x_ind];
+    // Lock position to x value corresponding to horizontally-nearest data point
+    const d      = data[0].data;
+    const w      = g.w - axis_frame.l - axis_frame.r;
+    const x_norm = hover_x / w;
+    const x_ind  = parseInt(x_norm * (d.length - 1) + 0.5);
+
+    if (x_ind < 0 || x_ind >= d.length) {
+      return;
+    }
+
+    const value = d[x_ind];
 
     // Semitransparent overlay
-    var rx = gstate.offsets.l,
-        ry = gstate.offsets.t,
-        rw = hover_x,
-        rh = gstate.h - gstate.offsets.t - gstate.offsets.b;
+    const rx = axis_frame.l;
+    const ry = axis_frame.t;
+    const rw = x_ind * w / (d.length - 1);
+    const rh = g.h - axis_frame.t - axis_frame.b;
     c.beginPath();
-    c.fillStyle = 'rgba(255,255,255, 0.08)';
+    c.fillStyle = 'rgba(0,0,255,0.1)';
     c.rect(rx, ry, rw, rh);
     c.fill();
 
-    // Line
-    var x  = hover_x + gstate.offsets.l,
-        y1 = gstate.h - gstate.offsets.b,
-        y2 = 0,
-        lineWidth = (options.axisWidthX || 1) * gstate.pr;
+    // Vertical drop-line
+    const x  = axis_frame.l + rw;
+    const y1 = g.h - axis_frame.b;
+    const y2 = 0;
+
     c.beginPath();
-    c.lineWidth = lineWidth;
-    c.strokeStyle = 'white';
+    c.lineWidth   = o.hover_dropline_width;
+    c.strokeStyle = o.hover_dropline_color;
     c.moveTo(x, y1);
     c.lineTo(x, y2);
     c.stroke();
 
-    // Value
-    var vx = x + lineWidth/2,
-        vy = y2;
-    if (options.hoverValueDraw_callback &&
-        typeof options.hoverValueDraw_callback === 'function')
-    {
-      options.hoverValueDraw_callback(c,
-                                      x_ind,
-                                      vx,
-                                      vy,
-                                      gstate.w,
-                                      gstate.h,
-                                      gstate.pr);
+    // // Value
+    const vx = x + o.hover_dropline_width/2;
+    const vy = y2;
+    if (typeof o.hover_value_draw_callback === 'function') {
+      o.hoverValueDraw_callback(c, x_ind, vx, vy, g.w, g.h, g.pr);
     }
     else {
-      var fontsize = 0.08 * gstate.h;
-      if (fontsize > 15 * gstate.pr) {
-        fontsize = 15 * gstate.pr;
-      }
+      const fontsize = Math.min(0.08 * g.h, m(15));
       c.font = '400 ' + fontsize + 'px Roboto';
       c.textBaseline = 'top';
       c.textAlign = 'start';
-      var v_hpad = 8 * gstate.pr,
-          v_vpad = 4 * gstate.pr,
-          lbl = math.format_number(value, 0),
-          txt_sz = c.measureText(lbl),
-          vw = txt_sz.width + v_hpad * gstate.pr,
-          vh = fontsize + v_vpad;
+      const v_hpad = m(8);
+      const v_vpad = m(4);
+      const lbl    = math.format_number(value, 0);
+      const txt_sz = c.measureText(lbl);
+      const vw     = txt_sz.width + m(v_hpad);
+      const vh     = fontsize + v_vpad;
 
-      if (vx + vw >= gstate.offsets.l + usable_width + gstate.offsets.r - gstate.pr*3) {
-        vx -= vw + lineWidth;
+        let _vx = vx;
+      if (vx + vw >= axis_frame.l + w + axis_frame.r - m(3)) {
+        _vx -= vw + o.hover_dropline_width;
       }
 
       c.beginPath();
-      c.fillStyle = '#a63a4f';
-      c.rect(vx, vy, vw, vh);
+      c.fillStyle = o.hover_value_background_color;
+      c.rect(_vx, vy, vw, vh);
       c.fill();
 
-      c.fillStyle = 'white';
-      c.fillText(lbl, vx + v_hpad/2, vy + v_vpad/2);
+      c.fillStyle = o.hover_value_foreground_color;
+      c.fillText(lbl, _vx + v_hpad/2, vy + v_vpad/2);
     }
-  };
+  }
 
-  Draw.Frame = function() {
-    gstate.regen();
-    c.clearRect(0, 0, gstate.w, gstate.h);
 
-    Draw.gridLines(data, options);
-    Draw.Axes(data, options);
-    Draw.ValueLabels();
-    Draw.CategoryLabels();
-  };
+  function draw_frame() {
+    c.clearRect(0, 0, g.w, g.h);
 
-  Draw.All = function() {
+    draw_gridlines(data, options);
+    draw_axes(data, options);
+    draw_valueLabels();
+    draw_categoryLabels();
+  }
+
+
+  function draw_all() {
+    g.regen();
+    o = get_opts();
+    axis_frame.regen();
+
     el_canvas.dispatchEvent(new CustomEvent('force_resize'));
-    Draw.Frame();
-    for (var i = 0; i < data.length; ++i) {
-      Draw.DataLine(data[i], options, 100);
-    }
-    Draw.Hover();
-  };
 
-  var animQueue = AnimQueue();
-  animQueue.setDefaultDrawTask(Draw.All);
-  // Animation tasks that can be added to the queue
-  function animTask_drawLine(dataset_ind_animated, dataset_inds_shown) {
-    var _n = 0,
-        step = 3,
-        max = 100;
+    draw_frame();
+    data.forEach(line => draw_dataLine(line));
+    draw_hover();
+  }
+
+
+  function animTask_drawLine(line) {
+    let n = 0;
+
     return function() {
-      el_canvas.dispatchEvent(new CustomEvent('force_resize'));
-      Draw.Frame();
-      _n = Math.min(_n+step, max);
+      n = Math.min(n + 3, 100);
+      line.progress = n;
+      draw_all();
 
-      for (var i = 0; i < data.length; ++i) {
-        if (i == dataset_ind_animated)                 Draw.DataLine(data[i], options, _n);
-        else if (dataset_inds_shown.indexOf(i) != -1)  Draw.DataLine(data[i], options, 100);
-      }
-      if (_n == max) {
+      if (n === 100) {
         animQueue.finishTask();
       }
     };
   }
-  function animTask_drawPoints(dataset_ind_animated, dataset_inds_shown) {
-    var _n = 0;
-    return function() {
-      el_canvas.dispatchEvent(new CustomEvent('force_resize'));
-      Draw.Frame();
-      _n = Math.min(_n + 7, 100);
 
-      for (var i = 0; i < data.length; ++i) {
-        if (i == dataset_ind_animated)                 Draw.DataLine(data[i], options, 0, _n);
-        else if (dataset_inds_shown.indexOf(i) != -1)  Draw.DataLine(data[i], options, 100);
-      }
-      if (_n == 100) {
+
+  function animTask_drawPoints(line) {
+    let n = 0;
+
+    return function() {
+      n = Math.min(n + 7, 100);
+      line.progress_points = n;
+      draw_all();
+
+      if (n === 100) {
         animQueue.finishTask();
       }
     };
   }
+
 
   function draw() {
     animQueue.reset();
-    var shown_lines = [ ];
-    for (var i=0; i < data.length; ++i) {
-      var previously_shown = shown_lines.slice(0);
-      if (data[i].drawPoints && data[i].animPoints) {
-        animQueue.add(animTask_drawPoints(i, previously_shown));
+
+    data.forEach(line => {
+      if (line.drawPoints && line.animPoints) {
+        animQueue.add(animTask_drawPoints(line));
       }
-      animQueue.add(animTask_drawLine(i, previously_shown));
-      shown_lines.push(i);
-    }
+      animQueue.add(animTask_drawLine(line));
+    });
+
     animQueue.start();
   }
 
-  function rsz() {
 
-  }
-
-  var exp = {
-    draw: draw,
+  return {
+    draw,
     drawFrame: function() {
       el_canvas.dispatchEvent(new CustomEvent('force_resize'));
-      Draw.Frame();
+      draw_frame();
     },
     tearDown: function() {  // Give the garbage collector a fighting chance
       unbind();
@@ -514,8 +562,6 @@ function line_chart(el_canvas, data, options, category_labels) {
       c = null;
     },
   };
-
-  return exp;
 }
 
 export default line_chart;

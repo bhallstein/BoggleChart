@@ -18,7 +18,7 @@
   <script src="dist/example.js"></script>
   <script id="init">
     const div = document.querySelector('#canvas-wrapper');
-    const canvas = bogglechart.createCanvas(div);
+    const canvas = bogglechart.create_canvas(div);
     const line_chart = bogglechart.line_chart(
       canvas,
       [
@@ -27,16 +27,17 @@
           style:       'solid',
           lineWidth:   1.8,
           drawLines:   true,
-          drawPoints:  false,
+          drawPoints:  true,
+          pointRadius: 2.8,
           animPoints:  true,
           tension:     0.0,
           data: [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
-            .map(_ => Math.random()).sort()
-            .map(x => x * 10),
+            .map(_ => Math.random() * 10)
+            .sort(),
         },
         {
           title:       'Discussion',
-          color:       '#666',
+          color:       'red',
           style:       'solid',
           lineWidth:   1.8,
           drawLines:   true,
@@ -44,28 +45,25 @@
           animPoints:  true,
           tension:     0.0,
           data: [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
-            .map(_ => Math.random()).sort()
-            .map(x => x * 10),
+            .map(_ => Math.random() * 10)
+            .sort(),
         },
       ],
       {
         min: 0,
         max: 10,
-        axisX: true,
-        axisXTop: true,
-        axisWidthX: 1.3,
-        axisWidthXTop: 1.3,
-        gridLines: {
-          horizontal: true,
-          ticks_horizontal: true,
-          style_horizontal: 'dashed',
-        },
-        valueLabels_inside: true,
-        valueLabels_padding: 10,
-        valueLabels_labelMax: false,
-        step: 2,
-        valueLabels: true,
-        categoryLabels: true,
+
+        gridlines_y: true,
+        gridlines_y_ticks: true,
+        gridlines_y_style: 'dashed',
+
+        gridlines_x: true,
+        gridlines_x_ticks: true,
+        gridlines_x_style: 'dashed',
+
+        interactions: true,
+        hover_dropline_width: 1.2,
+        hover_dropline_color: 'blue',
       },
       [
         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',

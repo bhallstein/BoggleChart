@@ -221,20 +221,20 @@ function bar_chart(el_canvas, data, options, category_labels) {
     }
   };
 
-  Draw.gridLines = function() {
-    if (!options.gridLines) return;
+  Draw.gridlines = function() {
+    if (!options.gridlines) return;
 
-    if (options.gridLines.horizontal) {
+    if (options.gridlines.horizontal) {
       var usable_height = gstate.h - gstate.offsets.t - gstate.offsets.b,
           increment     = options.step * usable_height / (options.max - options.min),
           x             = gstate.offsets.l,
           x_right       = x + gstate.w - gstate.offsets.l - gstate.offsets.r,
-          x_left        = x - (options.gridLines.ticks_horizontal ? 6*gstate.pr : 0);
+          x_left        = x - (options.gridlines.ticks_horizontal ? 6*gstate.pr : 0);
 
       c.beginPath();
-      c.lineWidth = (options.gridLines.width_h || 0.75) * gstate.pr;
-      c.strokeStyle = (options.gridLines.col_h || '#222');
-      if (options.gridLines.style_horizontal == 'dashed') {
+      c.lineWidth = (options.gridlines.width_h || 0.75) * gstate.pr;
+      c.strokeStyle = (options.gridlines.col_h || '#222');
+      if (options.gridlines.style_horizontal == 'dashed') {
         c.setLineDash([ 2*gstate.pr, 5*gstate.pr, ]);
       }
 
@@ -249,17 +249,17 @@ function bar_chart(el_canvas, data, options, category_labels) {
     }
     c.setLineDash([])
 
-    if (options.gridLines.vertical) {
+    if (options.gridlines.vertical) {
       var usable_width = gstate.w - gstate.offsets.l - gstate.offsets.r,
           h_increment = usable_width / (data[0].data.length - 1),
           x = gstate.offsets.l,
           y_top = gstate.offsets.t,
-          y_btm = gstate.h - gstate.offsets.b + (options.gridLines.ticks_vertical ? 6*gstate.pr : 0);
+          y_btm = gstate.h - gstate.offsets.b + (options.gridlines.ticks_vertical ? 6*gstate.pr : 0);
 
       c.beginPath();
-      c.lineWidth = (options.gridLines.width_v || 0.75) * gstate.pr;
-      c.strokeStyle = (options.gridLines.col_v || '#222');
-      if (options.gridLines.style_v == 'dashed') {
+      c.lineWidth = (options.gridlines.width_v || 0.75) * gstate.pr;
+      c.strokeStyle = (options.gridlines.col_v || '#222');
+      if (options.gridlines.style_v == 'dashed') {
         c.setLineDash([ 2*gstate.pr, 5*gstate.pr, ]);
       }
 
@@ -328,7 +328,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
   Draw.All = function() {
     gstate.regen();
     c.clearRect(0, 0, gstate.w, gstate.h);
-    Draw.gridLines();
+    Draw.gridlines();
     Draw.Categories();
     Draw.Axes();
     Draw.CategoryLabels();
