@@ -1,6 +1,6 @@
-import AnimQueue from '../AnimQueue';
-import helpers from '../helpers';
-import math from '../math';
+import AnimQueue from '../helpers/anim-queue';
+import helpers from '../helpers/helpers';
+import math from '../helpers/math';
 
 
 const default_opts = {

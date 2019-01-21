@@ -3,8 +3,8 @@ import line_chart from './charts/line';
 import pie_chart from './charts/pie';
 import radar_chart from './charts/radar';
 
-import helpers from './helpers';
-import math from './math';
+import helpers from './helpers/helpers';
+import math from './helpers/math';
 
 
 // create_canvas

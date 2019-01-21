@@ -1,6 +1,7 @@
-import AnimQueue from '../AnimQueue';
-import helpers from '../helpers';
-import math from '../math';
+import anim_queue from '../helpers/anim-queue';
+import helpers from '../helpers/helpers';
+import math from '../helpers/math';
+
 
 function pie_chart(el_canvas, data, options, click_callback) {
   var c = el_canvas.getContext('2d');
@@ -252,7 +253,7 @@ function pie_chart(el_canvas, data, options, click_callback) {
 
   // Animation tasks
   // ----------------------------------------------------------
-  var animQueue = AnimQueue();
+  var animQueue = anim_queue();
   animQueue.setDefaultDrawTask(_draw);
 
   var innerLabel = null,

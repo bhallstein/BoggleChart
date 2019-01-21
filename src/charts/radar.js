@@ -1,6 +1,7 @@
-import AnimQueue from '../AnimQueue';
-import helpers from '../helpers';
-import math from '../math';
+import anim_queue from '../helpers/anim-queue';
+import helpers from '../helpers/helpers';
+import math from '../helpers/math';
+
 
 function radar_chart(el_canvas, data, options) {
   var c = el_canvas.getContext('2d');
@@ -136,7 +137,7 @@ function radar_chart(el_canvas, data, options) {
     Draw.Labels();
   };
 
-  var animQueue = AnimQueue();
+  var animQueue = anim_queue();
   animQueue.setDefaultDrawTask(Draw.All);
   function animTask_drawSegmentsSequentially() {
     var _n = 0,

@@ -1,6 +1,7 @@
-import AnimQueue from '../AnimQueue';
-import helpers from '../helpers';
-import math from '../math';
+import anim_queue from '../helpers/anim-queue';
+import helpers from '../helpers/helpers';
+import math from '../helpers/math';
+
 
 function bar_chart(el_canvas, data, options, category_labels) {
   var c = el_canvas.getContext('2d');
@@ -139,7 +140,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
     },
   };
 
-  var animQueue = AnimQueue();
+  var animQueue = anim_queue();
   animQueue.setDefaultDrawTask(Draw.All);
 
   Draw.SetValueLblFont = function() {
