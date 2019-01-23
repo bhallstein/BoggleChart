@@ -2,6 +2,17 @@
 // general helpers
 // -------------------------------
 
+function get_opts(default_opts, options, g) {
+  const opts = Object.assign({}, default_opts, options);
+
+  // Process function options
+  Object.keys(opts)
+    .filter(k => typeof opts[k] === 'function')
+    .forEach(k => opts[k] = opts[k](g, opts));
+
+  return opts;
+}
+
 
 function getOffset(ev, el) {
   var rect = el.getBoundingClientRect();
@@ -60,6 +71,7 @@ function getJSON(url, cb_success, cb_err, cb_progr) {
 
 
 export default {
+  get_opts,
   getOffset,
   getOffset_canv,
   clone,

@@ -1,50 +1,84 @@
 import anim_queue from '../helpers/anim-queue';
 import helpers from '../helpers/helpers';
 import math from '../helpers/math';
+import line_chart from './line';
+
+const default_opts = {
+  min: 0,
+  max: 100,
+  step: (g, opts) => (opts.max - opts.min) / 5,
+
+  x_axis:             true,
+  x_axis_width:       1,
+  x_axis_color:       'black',
+  x_axis_extend_left: false,
+
+  top_x_axis:       false,
+  top_x_axis_width: 1,
+  top_x_axis_color: 'black',
+
+  y_axis:       true,
+  y_axis_width: 1,
+  y_axis_color: 'black',
+
+  right_y_axis:       false,
+  right_y_axis_width: 1,
+  right_y_axis_color: 'black',
+
+  labels_y:             true,
+  labels_y_padding:     10,
+  labels_y_fontsize:    (g) => 0.035 * g.h,
+  labels_y_color:       'black',
+  labels_y_labelOrigin: true,
+  labels_y_labelMax:    true,
+  labels_y_unit:        '',
+
+  labels_x:          true,
+  labels_x_padding:  (g) => 0.02 * g.h,
+  labels_x_fontsize: (g) => 0.04 * g.h,
+  labels_x_color:    'black',
+
+  gridlines_y:       false,     // NB gridlines can be false while _ticks
+  gridlines_y_ticks: false,     //    is true
+  gridlines_y_color: 'black',
+  gridlines_y_width: 0.75,
+  gridlines_y_style: 'solid',
+
+  bar_width: 0.03,
+  bar_spacing: 0.02,
+};
 
 
 function bar_chart(el_canvas, data, options, category_labels) {
   var c = el_canvas.getContext('2d');
-  options = options || { };
+  let o;   // Current calculated options
 
-  // Event bindings
-  el_canvas.addEventListener('BoggleChart:resize', cb_drawAll);
-  // el_canvas.addEventListener('mousemove', mouse_move);
-  // el_canvas.addEventListener('mouseenter', mouse_enter);
-  // el_canvas.addEventListener('mouseleave', mouse_leave);
-  function cb_drawAll() {
-    Draw.All();
-  }
-  function unbind() {
-    el_canvas.removeEventListener('BoggleChart:resize', cb_drawAll);
-  }
 
-  // Mouse events
+  // Bars animation queue
   // ----------------------------------------------------------
-  // function mouse_enter() { }
-  // function mouse_leave() {
-  //   gstate.hover_x = null;
-  //   animQueue.triggerDraw();
-  // }
-  // function mouse_move(ev) {
-  //   var p = BoggleChart.getOffset_canv(ev, el_canvas),
-  //       usable_width = gstate.width_pr - gstate.offsets.l - gstate.offsets.r;
-  //   p.x -= gstate.offsets.l;
-  //   gstate.hover_x = p.x;
-  //   animQueue.triggerDraw();
-  // }
+
+  const animQueue = anim_queue();
+  animQueue.setDefaultDrawTask(draw_all);
+
+
+  // Events
+  // ----------------------------------------------------------
+
+  el_canvas.addEventListener('BoggleChart:resize', draw_all);
+  function unbind() {
+    el_canvas.removeEventListener('BoggleChart:resize', draw_all);
+  }
 
 
   // Drawing
   // ----------------------------------------------------------
-  var Draw = { };
 
   var dvals = {
     highlighted_item: null,
     highlight_progress: null,
 
     labelROffset: function() {
-      return 4 * gstate.pr;
+      return 4 * g.pr;
     },
 
     axisColour_x: function() {
@@ -55,63 +89,63 @@ function bar_chart(el_canvas, data, options, category_labels) {
     },
 
     axisWidth_x: function() {
-      return (options.axisWidthX || 1) * gstate.pr;
+      return (options.axisWidthX || 1) * g.pr;
     },
     axisWidth_xtop: function() {
-      return (options.axisWidthXTop || 1) * gstate.pr;
+      return (options.axisWidthXTop || 1) * g.pr;
     },
 
     catLabel_paddingTop: function() {
       return (
         options.categoryLabels_padding ?
-        options.categoryLabels_padding * gstate.pr :
-        gstate.h * 0.02
+        options.categoryLabels_padding * g.pr :
+        g.h * 0.02
       );
     },
-    catLabel_paddingBtm: function() {
-      return dvals.catLabel_fontsize() * 0.5;
-    },
+    // catLabel_paddingBtm: function() {
+    //   // return dvals.catLabel_fontsize() * 0.5;
+    // },
     catLabel_fontsize: function() {
       return (
         options.categoryLabels_fontsize ?
-        options.categoryLabels_fontsize * gstate.pr :
-        gstate.h * 0.04
+        options.categoryLabels_fontsize * g.pr :
+        g.h * 0.04
       );
     },
-    catLabel_ypos: function() {
-      return gstate.h - dvals.catLabel_paddingBtm() - dvals.catLabel_fontsize() -
-        (options.extra_b_padding || 0)*gstate.pr;
-    },
+    // catLabel_ypos: function() {
+    //   return g.h - dvals.catLabel_paddingBtm() - dvals.catLabel_fontsize() -
+    //     (options.extra_b_padding || 0)*g.pr;
+    // },
 
     opt_valueLabels_labelMax: function() {
       if (typeof options.valueLabels_labelMax == 'undefined') return true;
       return options.valueLabels_labelMax;
     },
 
-    btm_section_height: function() {
-      if (!options.categoryLabels) return 2 * gstate.pr;
-      return dvals.catLabel_paddingTop() +
-        dvals.catLabel_fontsize() +
-        dvals.catLabel_paddingBtm();
-    },
-    top_section_height: function() {
-      if (options.valueLabels && dvals.opt_valueLabels_labelMax()) {
-        return dvals.valueLabel_fontsize();
-      }
-      return 2*gstate.pr;
-    },
+    // btm_section_height: function() {
+    //   if (!options.categoryLabels) return 2 * g.pr;
+    //   return dvals.catLabel_paddingTop() +
+    //     dvals.catLabel_fontsize() +
+    //     dvals.catLabel_paddingBtm();
+    // },
+    // top_section_height: function() {
+    //   if (options.valueLabels && dvals.opt_valueLabels_labelMax()) {
+    //     return dvals.valueLabel_fontsize();
+    //   }
+    //   return 2*g.pr;
+    // },
 
     valueLabel_fontsize: function() {
       return (
         options.valueLabels_fontsize ?
-        options.valueLabels_fontsize * gstate.pr :
-        gstate.h * 0.035
+        options.valueLabels_fontsize * g.pr :
+        g.h * 0.035
       );
     },
-    valueLabel_paddingR: function() { return (options.valueLabels_padding || 4) * gstate.pr; },
+    valueLabel_paddingR: function() { return (options.valueLabels_padding || 4) * g.pr; },
     valueLabel_paddingL: function() { return dvals.valueLabel_paddingR() * 0.5; },
     valueLabel_maxWidth: function() {
-      Draw.SetValueLblFont();
+      draw_setValueLblFont();
       var max = 0;
       for (var i=options.min; i <= options.max; i += (options.step || 1)) {
         var w = c.measureText(i).width;
@@ -121,73 +155,64 @@ function bar_chart(el_canvas, data, options, category_labels) {
     },
   };
 
-  var gstate = {
-    pr: null,
-    w:  null,
-    h:  null,
-    offsets:   null,
 
-    regen: function() {
-      gstate.pr        = el_canvas.pixel_ratio,
-      gstate.w  = el_canvas.width;
-      gstate.h = el_canvas.height;
-      gstate.offsets = {
-        l: dvals.valueLabel_maxWidth() + dvals.valueLabel_paddingL() + dvals.valueLabel_paddingR() + (options.extra_l_padding || 0)*gstate.pr,
-        r: 2 * gstate.pr,
-        t: dvals.top_section_height(),
-        b: dvals.btm_section_height() + (options.extra_b_padding || 0)*gstate.pr,
-      };
+  function m(x) { return g.pr * x; }
+
+  const g = {
+    regen() {
+      g.pr = el_canvas.pixel_ratio,
+      g.w  = el_canvas.width;
+      g.h  = el_canvas.height;
     },
   };
 
-  var animQueue = anim_queue();
-  animQueue.setDefaultDrawTask(Draw.All);
-
-  Draw.SetValueLblFont = function() {
-    c.font = '400 ' + dvals.valueLabel_fontsize() + 'px Roboto';
+  const axis_frame = {
+    regen() {
+      axis_frame.l = line_chart.max_label_width(c, g, o) + o.labels_y_padding + line_chart.label_padding_left(o);
+      axis_frame.r = m(4);
+      axis_frame.b = line_chart.btm_section_height(o, g);
+      axis_frame.t = line_chart.top_section_height(o, g);
+    },
   };
 
-  Draw.Categories = function() {
-    function bar_spacing() {
-      return (typeof options.bar_spacing == 'undefined' ? '0.02' : options.bar_spacing);
-    }
 
-    var n = data.length,          // n is the number of categories
-        m = data[0].data.length,  // m is the number of items
-        b = (options.bar_width || 0.03),    // b is the width of a bar
-        s = bar_spacing(),  // s is the spacing between bars within items
-        q = n*b + (n-1)*s,  // q is the total width of an item group
-        a = (1 - m*q) / m,  // a is the space between item groups
-        usable_width = gstate.w - gstate.offsets.l - gstate.offsets.r,
-        usable_height = gstate.h - gstate.offsets.b - gstate.offsets.t;
+  function draw_categories() {
+    let n = data.length;                // n is the number of categories
+    let m = data[0].data.length;        // m is the number of items
+    let b = o.bar_width;                // b is the width of a bar
+    let s = o.bar_spacing;              // s is the spacing between bars within items
+    let q = n*b + (n-1)*s;              // q is the total width of an item group
+    let a = (1 - m*q) / m;              // a is the space between item groups
+    let usable_width = g.w - axis_frame.l - axis_frame.r;
+    let usable_height = g.h - axis_frame.b - axis_frame.t;
+    const min_alpha = 0.3;
 
     b *= usable_width;
     s *= usable_width;
     q *= usable_width;
     a *= usable_width;
-    var min_alpha = 0.3;
 
-    for (var i=0, _i=0; i < data.length; ++i) {
-      var cat = data[i],
-          cat_data = cat.data,
-          line_w = (cat.outlineWidth || 1) * gstate.pr,
-          alpha;
+    for (let i = 0, _i = 0; i < data.length; ++i) {
+      const cat = data[i];
+      const cat_data = cat.data;
+      const line_w = (cat.outlineWidth || 1) * g.pr;
+      let alpha;
 
       if (dvals.highlighted_item === null)   { alpha = 1; }
       else if (dvals.highlighted_item === i) { alpha = 1; }
-      else                                      { alpha = (1 - dvals.highlight_progress) * (1 -min_alpha) + min_alpha; }
+      else                                   { alpha = (1 - dvals.highlight_progress) * (1 - min_alpha) + min_alpha; }
 
       c.beginPath();
       c.globalAlpha = alpha;
       c.fillStyle = cat.color || 'black';
       c.strokeStyle = cat.outline || 'black';
       c.lineWidth = line_w;
-      for (var j=0; j < cat_data.length; ++j, ++_i) {
+      for (let j = 0; j < cat_data.length; ++j, ++_i) {
         var value = cat_data[j];
-        var x = (a/2 + j*(q + a) + i*(b + s)) + line_w/2 + gstate.offsets.l;
+        var x = (a/2 + j*(q + a) + i*(b + s)) + line_w/2 + axis_frame.l;
         var h = value / options.max * usable_height;
         var w = b - line_w;
-        var y = gstate.h - gstate.offsets.b - h - line_w/2;
+        var y = g.h - axis_frame.b - h - line_w/2;
         c.rect(x, y, w, h + line_w/4);
       }
       c.fill();
@@ -197,144 +222,50 @@ function bar_chart(el_canvas, data, options, category_labels) {
     c.globalAlpha = 1;
   };
 
-  Draw.Axes = function() {
-    var base_y = gstate.h - gstate.offsets.b;
-    var base_x = (options.valueLabels_inside ? 0 : gstate.offsets.l);
-    var max_x = gstate.w - gstate.offsets.r;
-    var max_y = gstate.offsets.t;
-
-    if (options.axisX) {
-      c.beginPath();
-      c.moveTo(base_x, base_y);
-      c.strokeStyle = options.axisColorX || '#222';
-      c.lineWidth = dvals.axisWidth_x();
-      c.lineTo(max_x, base_y);
-      c.stroke();
+  function draw_labels_x() {
+    if (!options.labels_x) {
+      return;
     }
-
-    if (options.axisXTop) {
-      c.beginPath();
-      c.moveTo(base_x, max_y);
-      c.strokeStyle = options.axisColorXTop || '#222';
-      c.lineWidth = dvals.axisWidth_xtop();
-      c.lineTo(max_x, max_y);
-      c.stroke();
-    }
-  };
-
-  Draw.gridlines = function() {
-    if (!options.gridlines) return;
-
-    if (options.gridlines.horizontal) {
-      var usable_height = gstate.h - gstate.offsets.t - gstate.offsets.b,
-          increment     = options.step * usable_height / (options.max - options.min),
-          x             = gstate.offsets.l,
-          x_right       = x + gstate.w - gstate.offsets.l - gstate.offsets.r,
-          x_left        = x - (options.gridlines.ticks_horizontal ? 6*gstate.pr : 0);
-
-      c.beginPath();
-      c.lineWidth = (options.gridlines.width_h || 0.75) * gstate.pr;
-      c.strokeStyle = (options.gridlines.col_h || '#222');
-      if (options.gridlines.style_horizontal == 'dashed') {
-        c.setLineDash([ 2*gstate.pr, 5*gstate.pr, ]);
-      }
-
-      var y = gstate.h - gstate.offsets.b;
-      var max = options.axisXTop ? options.max - 1 : options.max;
-      for (var i = options.min + options.step; i <= max; i += options.step) {
-        y -= increment;
-        c.moveTo(x_left, y);
-        c.lineTo(x_right, y);
-      }
-      c.stroke();
-    }
-    c.setLineDash([])
-
-    if (options.gridlines.vertical) {
-      var usable_width = gstate.w - gstate.offsets.l - gstate.offsets.r,
-          h_increment = usable_width / (data[0].data.length - 1),
-          x = gstate.offsets.l,
-          y_top = gstate.offsets.t,
-          y_btm = gstate.h - gstate.offsets.b + (options.gridlines.ticks_vertical ? 6*gstate.pr : 0);
-
-      c.beginPath();
-      c.lineWidth = (options.gridlines.width_v || 0.75) * gstate.pr;
-      c.strokeStyle = (options.gridlines.col_v || '#222');
-      if (options.gridlines.style_v == 'dashed') {
-        c.setLineDash([ 2*gstate.pr, 5*gstate.pr, ]);
-      }
-
-      var min = options.axisY ? 1 : 0;
-      var max = options.axisYRight ? 2 : 1;
-      for (var i=min; i <= data[0].data.length - max; ++i) {
-        c.moveTo(x, y_btm);
-        c.lineTo(x, y_top);
-        x += h_increment;
-      }
-      c.stroke();
-    }
-    c.setLineDash([])
-  };
-
-  Draw.ValueLabels = function() {
-    if (!options.valueLabels) return;
-
-    var usable_height = gstate.h - gstate.offsets.t - gstate.offsets.b;
-    var increment     = options.step * usable_height / (options.max - options.min);
-    var x_right       = gstate.offsets.l - dvals.valueLabel_paddingR();
-
-    Draw.SetValueLblFont();
-    c.textBaseline = 'middle';
-    c.textAlign    = 'end';
-    c.fillStyle    = options.valueLabels_color || 'black';
-
-    var step = options.step || 1;
-    var min = options.valueLabels_labelOrigin ? options.min : options.min + step;
-    var max = dvals.opt_valueLabels_labelMax() ? options.max : options.max - step;
-
-    for (var i=min; i <= max; i += step) {
-      var y_rel = (i - options.min) / (options.max - options.min);
-      var y = gstate.h - gstate.offsets.b - usable_height + (1 - y_rel) * usable_height;
-      c.fillText(i, x_right, y);
-    }
-  };
-
-  Draw.CategoryLabels = function() {
-    if (!options.categoryLabels) return;
 
     c.beginPath();
-    c.fillStyle = options.categoryLabels_color || 'black';
+    c.fillStyle = o.labels_x_color;
 
-    c.font = '400 ' + dvals.catLabel_fontsize() + 'px Roboto';
+    c.font = '400 ' + o.labels_x_fontsize + 'px Roboto';
     c.textBaseline = 'top';
     c.textAlign = 'center';
 
-    var y = dvals.catLabel_ypos();
-    for (var i=0; i < category_labels.length; ++i) {
-      var n = data.length,          // n is the number of categories
-          m = data[0].data.length,  // m is the number of items
-          b = (options.bar_width || 0.03),    // b is the width of a bar
-          s = (options.bar_spacing || 0.02),  // s is the spacing between bars within items
-          q = n*b + (n-1)*s,  // q is the total width of an item group
-          a = (1 - m*q) / m;  // a is the space between item groups
+    const y = g.h - 1.5 * o.labels_x_fontsize;
 
-      var x = a/2 + a*i + q*(i+1/2);
-      x = x * (gstate.w - gstate.offsets.l - gstate.offsets.r) + gstate.offsets.l;
+    const n = data.length;          // n is the number of categories
+    const m = data[0].data.length;  // m is the number of items
+    for (let i = 0; i < category_labels.length; ++i) {
+      const b = o.bar_width;
+      const s = o.bar_spacing;
+      const q = n*b + (n-1)*s;  // q is the total width of an item group
+      const a = (1 - m*q) / m;  // a is the space between item groups
+
+      let x = a/2 + a*i + q*(i+1/2);
+      x = x * (g.w - axis_frame.l - axis_frame.r) + axis_frame.l;
 
       c.fillText(category_labels[i], x, y);
     }
+  }
 
-  };
 
-  Draw.All = function() {
-    gstate.regen();
-    c.clearRect(0, 0, gstate.w, gstate.h);
-    Draw.gridlines();
-    Draw.Categories();
-    Draw.Axes();
-    Draw.CategoryLabels();
-    Draw.ValueLabels();
-  };
+  function draw_all() {
+    g.regen();
+    o = helpers.get_opts(default_opts, options, g);
+    axis_frame.regen();
+
+    c.clearRect(0, 0, g.w, g.h);
+
+    line_chart.draw_gridlines(c, g, axis_frame, o);
+    draw_categories();
+    line_chart.draw_axes(c, g, axis_frame, o);
+
+    draw_labels_x();
+    line_chart.draw_labels_y(c, g, axis_frame, o);
+  }
 
 
   // Animation tasks
@@ -386,7 +317,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
         }
       }
 
-      Draw.All();
+      draw_all();
       if (_n >= max) {
         animQueue.finishTask();
       }
@@ -418,20 +349,17 @@ function bar_chart(el_canvas, data, options, category_labels) {
         dvals.highlight_progress = 1;
         animQueue.finishTask();
       }
-      Draw.All();
+      draw_all();
     };
   }
 
-  function rsz() {
 
-  }
-
-  var exp = {
-    draw: function() {
+  return {
+    draw() {
       animQueue.add(animTask_animateBarsIn());
       animQueue.start();
     },
-    updateData: function(new_categories) {
+    updateData(new_categories) {
       if (new_categories.length != data.length) {
         console.log('BarChart.updateData() - wrong number of new_categories');
         return;
@@ -439,7 +367,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
       animQueue.add(animTask_animateDataTo(new_categories, math.easeInOutCubic_Simple));
       animQueue.start();
     },
-    setHighlightedItem: function(title) {
+    setHighlightedItem(title) {
       var ind = (function() {
         for (var i=0; i < data.length; ++i) {
           if (data[i].title == title)
@@ -453,7 +381,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
       animQueue.add(animTask_applyHighlight(ind));
       animQueue.start();
     },
-    tearDown: function() {
+    tearDown() {
       unbind();
       animQueue.reset();
       animQueue = null;
@@ -461,8 +389,6 @@ function bar_chart(el_canvas, data, options, category_labels) {
       c = null;
     },
   };
-
-  return exp;
 }
 
 export default bar_chart;

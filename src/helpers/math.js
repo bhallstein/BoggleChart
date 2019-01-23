@@ -15,7 +15,7 @@ function easeOutCubic(x, t, start_value, delta, duration) {
 
 
 function easeOutCubic_Simple(t) {
-  return module.exports.easeOutCubic(0, t, 0, 1, 1);
+  return easeOutCubic(0, t, 0, 1, 1);
 }
 
 
@@ -127,7 +127,7 @@ function quadrant(x, y) {
 
 
 function angle_from_vertical(x, y) {
-  var q = module.exports.quadrant(x, y);
+  var q = quadrant(x, y);
   if (q == 0) { return 0; }
   if (q == 1) { return Math.atan(x/y); }
   if (q == 2) { return Math.PI - Math.atan(-x/y); }

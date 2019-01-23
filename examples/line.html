@@ -23,35 +23,43 @@
       canvas,
       [
         {
-          title:       'Abuse',
-          style:       'solid',
-          lineWidth:   1.8,
-          drawLines:   true,
-          drawPoints:  true,
-          pointRadius: 2.8,
-          animPoints:  true,
-          tension:     0.0,
+          title:          'Abuse',
+          style:          'solid',
+          lineWidth:      1.8,
+          animate_line:   true,
+          draw_points:    true,
+          animate_points: true,
+          pointRadius:    2.8,
+          animPoints:     true,
+          tension:        0.0,
           data: [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
-            .map(_ => Math.random() * 10)
+            .map(_ => Math.random() * 8.5)
             .sort(),
         },
         {
-          title:       'Discussion',
-          color:       'red',
-          style:       'solid',
-          lineWidth:   1.8,
-          drawLines:   true,
-          drawPoints:  false,
-          animPoints:  true,
-          tension:     0.0,
+          title:          'Discussion',
+          color:          'red',
+          style:          'solid',
+          lineWidth:      1.8,
+          animate_line:   true,
+          draw_points:    true,
+          animate_points: true,
+          pointRadius:    2.8,
+          tension:        0.0,
           data: [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
-            .map(_ => Math.random() * 10)
+            .map(_ => Math.random() * 8.5)
             .sort(),
         },
       ],
       {
         min: 0,
         max: 10,
+
+        top_x_axis: true,
+        x_axis_extend_left: true,
+
+        labels_y_origin: false,
+        labels_y_max:    false,
 
         gridlines_y: true,
         gridlines_y_ticks: true,
@@ -60,10 +68,6 @@
         gridlines_x: true,
         gridlines_x_ticks: true,
         gridlines_x_style: 'dashed',
-
-        interactions: true,
-        hover_dropline_width: 1.2,
-        hover_dropline_color: 'blue',
       },
       [
         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
