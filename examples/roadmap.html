@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>Roadmap</title>
+</head>
+
+<body>
+
+  <h1>Roadmap</h1>
+  <div id="canvas-wrapper" style="width: 800px; height: 400px;"></div>
+  <div style="font-family: Hack, Consolas, monospace">
+    <pre id="script-preview"></pre>
+  </div>
+
+  <script src="dist/example.js"></script>
+  <script id="init">
+    const canvas = bogglechart.create_canvas(document.querySelector('#canvas-wrapper'));
+    const roadmap = bogglechart.roadmap(
+      canvas,
+      [
+        {
+          name: 'Infrastructure',
+          color: '10aded',
+        },
+        {
+          name: 'Muffins',
+          color: 'de1e7e',
+        },
+      ],
+      {
+
+      }
+    );
+  </script>
+  <script>
+    (function() {
+      const s = document.querySelector('#init').innerHTML;
+      document.querySelector('#script-preview').textContent = s;
+    })();
+  </script>
+
+</body>
+</html>
+
