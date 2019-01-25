@@ -188,7 +188,7 @@ BoggleChart.ExplosionMap = function(el_ctnr, el_clock, data_url, area, el_lowPer
 			}
 
 			points[i][2] += circle_speed;
-			var radius = BoggleChart.easeOutCubic(0, progress, 0, 1, 1) * _circsz;
+			var radius = BoggleChart.ease_out_cubic(0, progress, 0, 1, 1) * _circsz;
 			var col = circle_col;
 			c.beginPath();
 			c.fillStyle = 'rgba(' + col.r+','+col.g+','+col.b+',' + ((1-progress)*.5) + ')';

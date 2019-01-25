@@ -25,12 +25,14 @@
       canvas,
       [
         {
+          title: 'Cat 1',
           data: [
             r(), r(), r(),
           ],
           outline: 'transparent',
         },
         {
+          title: 'Cat 2',
           data: [
             r(), r(), r()
           ],
@@ -38,6 +40,7 @@
           outline: 'transparent',
         },
         {
+          title: 'Cat 3',
           data: [
             r(), r(), r()
           ],
@@ -63,6 +66,10 @@
       ],
     );
     bar_chart.draw();
+
+    setTimeout(_ => bar_chart.set_highlight('Cat 3'), 2000);
+    setTimeout(_ => bar_chart.set_highlight(''), 3500);
+
   </script>
   <script>
     (function() {

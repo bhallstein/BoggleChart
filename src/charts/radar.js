@@ -157,7 +157,7 @@ function radar_chart(el_canvas, data, options) {
         var t_start = i * (t - overlap),
             t_end = t_start + t,
             progress = math.clamp((_n - t_start) / t, 0, 1),
-            progress_eased = math.easeOutCubic(0, progress, 0, 1, 1);
+            progress_eased = math.ease_out_cubic(0, progress, 0, 1, 1);
 
         if (progress > 0) {
           Draw.DataSegment.apply(this, [].slice.call(arguments).concat(progress_eased));

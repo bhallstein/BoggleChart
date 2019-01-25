@@ -208,7 +208,7 @@ module.exports.Choropleth = function(el_ctnr) {
 			}
 
 			points[i][2] += circle_speed;
-			var radius = BoggleChart.easeOutCubic(0, progress, 0, 1, 1) * _circsz;
+			var radius = BoggleChart.ease_out_cubic(0, progress, 0, 1, 1) * _circsz;
 			var col = circle_col;
 			c.fillStyle = 'rgba(' + col.r+','+col.g+','+col.b+',' + ((1-progress)*.5) + ')';
 			c.moveTo(x, y);

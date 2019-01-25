@@ -15,7 +15,7 @@ function get_opts(default_opts, options, g) {
 
 
 function getOffset(ev, el) {
-  var rect = el.getBoundingClientRect();
+  const rect = el.getBoundingClientRect();
   return {
     x: ev.clientX - rect.left,
     y: ev.clientY - rect.top,
@@ -24,7 +24,7 @@ function getOffset(ev, el) {
 
 
 function getOffset_canv(ev, el) {
-  var p = getOffset(ev, el);
+  const p = getOffset(ev, el);
   p.x = p.x * el.pixel_ratio;
   p.y = p.y * el.pixel_ratio;
   return p;
@@ -33,6 +33,17 @@ function getOffset_canv(ev, el) {
 
 function clone(obj) {
   return JSON.parse(JSON.stringify(obj));  // :/
+}
+
+
+function find(arr, f) {
+  const ind = arr.reduce((accum, item, i) => {
+    if (accum === -1 && f(item, i)) {
+      accum = i;
+    }
+    return accum;
+  }, -1);
+  return ind;
 }
 
 
@@ -55,7 +66,7 @@ function monthName(date, short) {
 
 
 function getJSON(url, cb_success, cb_err, cb_progr) {
-  var xhr = new XMLHttpRequest;
+  const xhr = new XMLHttpRequest;
   xhr.addEventListener('progress', cb_progr);
   xhr.addEventListener('error', cb_err);
   xhr.addEventListener('abort', cb_err);
@@ -75,6 +86,7 @@ export default {
   getOffset,
   getOffset_canv,
   clone,
+  find,
   totalData,
   monthName,
   getJSON,

@@ -50,7 +50,7 @@ const default_opts = {
 
 
 function bar_chart(el_canvas, data, options, category_labels) {
-  var c = el_canvas.getContext('2d');
+  const c = el_canvas.getContext('2d');
   let o;   // Current calculated options
 
 
@@ -73,89 +73,6 @@ function bar_chart(el_canvas, data, options, category_labels) {
   // Drawing
   // ----------------------------------------------------------
 
-  var dvals = {
-    highlighted_item: null,
-    highlight_progress: null,
-
-    labelROffset: function() {
-      return 4 * g.pr;
-    },
-
-    axisColour_x: function() {
-      return options.axisColorX || 'black';
-    },
-    axisColour_xtop: function() {
-      return options.axisColorXTop || 'black';
-    },
-
-    axisWidth_x: function() {
-      return (options.axisWidthX || 1) * g.pr;
-    },
-    axisWidth_xtop: function() {
-      return (options.axisWidthXTop || 1) * g.pr;
-    },
-
-    catLabel_paddingTop: function() {
-      return (
-        options.categoryLabels_padding ?
-        options.categoryLabels_padding * g.pr :
-        g.h * 0.02
-      );
-    },
-    // catLabel_paddingBtm: function() {
-    //   // return dvals.catLabel_fontsize() * 0.5;
-    // },
-    catLabel_fontsize: function() {
-      return (
-        options.categoryLabels_fontsize ?
-        options.categoryLabels_fontsize * g.pr :
-        g.h * 0.04
-      );
-    },
-    // catLabel_ypos: function() {
-    //   return g.h - dvals.catLabel_paddingBtm() - dvals.catLabel_fontsize() -
-    //     (options.extra_b_padding || 0)*g.pr;
-    // },
-
-    opt_valueLabels_labelMax: function() {
-      if (typeof options.valueLabels_labelMax == 'undefined') return true;
-      return options.valueLabels_labelMax;
-    },
-
-    // btm_section_height: function() {
-    //   if (!options.categoryLabels) return 2 * g.pr;
-    //   return dvals.catLabel_paddingTop() +
-    //     dvals.catLabel_fontsize() +
-    //     dvals.catLabel_paddingBtm();
-    // },
-    // top_section_height: function() {
-    //   if (options.valueLabels && dvals.opt_valueLabels_labelMax()) {
-    //     return dvals.valueLabel_fontsize();
-    //   }
-    //   return 2*g.pr;
-    // },
-
-    valueLabel_fontsize: function() {
-      return (
-        options.valueLabels_fontsize ?
-        options.valueLabels_fontsize * g.pr :
-        g.h * 0.035
-      );
-    },
-    valueLabel_paddingR: function() { return (options.valueLabels_padding || 4) * g.pr; },
-    valueLabel_paddingL: function() { return dvals.valueLabel_paddingR() * 0.5; },
-    valueLabel_maxWidth: function() {
-      draw_setValueLblFont();
-      var max = 0;
-      for (var i=options.min; i <= options.max; i += (options.step || 1)) {
-        var w = c.measureText(i).width;
-        if (w > max) max = w;
-      }
-      return max;
-    },
-  };
-
-
   function m(x) { return g.pr * x; }
 
   const g = {
@@ -175,6 +92,11 @@ function bar_chart(el_canvas, data, options, category_labels) {
     },
   };
 
+  const highlight = {
+    item: null,
+    progress: null,
+  };
+
 
   function draw_categories() {
     let n = data.length;                // n is the number of categories
@@ -183,7 +105,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
     let s = o.bar_spacing;              // s is the spacing between bars within items
     let q = n*b + (n-1)*s;              // q is the total width of an item group
     let a = (1 - m*q) / m;              // a is the space between item groups
-    let usable_width = g.w - axis_frame.l - axis_frame.r;
+    let usable_width  = g.w - axis_frame.l - axis_frame.r;
     let usable_height = g.h - axis_frame.b - axis_frame.t;
     const min_alpha = 0.3;
 
@@ -198,9 +120,9 @@ function bar_chart(el_canvas, data, options, category_labels) {
       const line_w = (cat.outlineWidth || 1) * g.pr;
       let alpha;
 
-      if (dvals.highlighted_item === null)   { alpha = 1; }
-      else if (dvals.highlighted_item === i) { alpha = 1; }
-      else                                   { alpha = (1 - dvals.highlight_progress) * (1 - min_alpha) + min_alpha; }
+      if (highlight.item === null)   { alpha = 1; }
+      else if (highlight.item === i) { alpha = 1; }
+      else                           { alpha = (1 - highlight.progress) * (1 - min_alpha) + min_alpha; }
 
       c.beginPath();
       c.globalAlpha = alpha;
@@ -208,11 +130,11 @@ function bar_chart(el_canvas, data, options, category_labels) {
       c.strokeStyle = cat.outline || 'black';
       c.lineWidth = line_w;
       for (let j = 0; j < cat_data.length; ++j, ++_i) {
-        var value = cat_data[j];
-        var x = (a/2 + j*(q + a) + i*(b + s)) + line_w/2 + axis_frame.l;
-        var h = value / options.max * usable_height;
-        var w = b - line_w;
-        var y = g.h - axis_frame.b - h - line_w/2;
+        const value = cat_data[j];
+        const x = (a/2 + j*(q + a) + i*(b + s)) + line_w/2 + axis_frame.l;
+        const h = value / options.max * usable_height;
+        const w = b - line_w;
+        const y = g.h - axis_frame.b - h - line_w/2;
         c.rect(x, y, w, h + line_w/4);
       }
       c.fill();
@@ -220,7 +142,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
       c.closePath();
     }
     c.globalAlpha = 1;
-  };
+  }
 
   function draw_labels_x() {
     if (!options.labels_x) {
@@ -271,82 +193,75 @@ function bar_chart(el_canvas, data, options, category_labels) {
   // Animation tasks
   // ----------------------------------------------------------
 
-  function animTask_animateBarsIn() {
-    var zero_data = [ ],
-        data_new = data;
-    for (var i=0; i < data.length; ++i) {
-      var cat_copy = helpers.clone(data[i]);
-      for (var j=0; j < cat_copy.data.length; ++j) {
-        cat_copy.data[j] = 0;
-      }
-      zero_data.push(cat_copy);
-    }
-    data = zero_data;
-    return animTask_animateDataTo(data_new);
-  }
-  function animTask_animateDataTo(new_categories, fn_easing) {
-    fn_easing = fn_easing || math.easeOutCubic_Simple;
-    var _n = 0,
-        max = 100,
-        step = 4,
-        t = 60,      // The duration of an individual segment animation
-        n_segments = data.length * data[0].data.length,
-        overlap = (n_segments*t - 100) / (n_segments - 1),
-        data_prev = helpers.clone(data),
-        data_new = helpers.clone(data);
+  function animtask__from_zero() {
+    const data_new = data;
+    data = helpers.clone(data).map(item => {  // zero out current data
+      item.data = item.data.map(x => 0);
+      return item;
+    });
 
-    for (var i=0; i < data.length; ++i) {
-      data_new[i].data = helpers.clone(new_categories[i].data);
-    }
+    return animtask__new_values(data_new);
+  }
+
+
+  function animtask__new_values(new_categories, fn_easing) {
+    fn_easing = fn_easing || math.ease_out_cubic_simple;
+
+    let frame = 0;
+    const t = 60;      // duration of an individual segment animation
+    const n_segments = data.length * data[0].data.length;
+    const overlap = (n_segments*t - 100) / (n_segments - 1);
+
+    const data_prev = helpers.clone(data);
+    const data_new = helpers.clone(data).map((item, i) => {
+      item.data = helpers.clone(new_categories[i].data);
+      return item;
+    });
 
     return function() {
-      _n = Math.min(_n+step, max);
+      frame = Math.min(frame + 4, 100);
 
-      for (var i=0, n=0; i < data.length; ++i) {
-        var cat = data[i].data,
-            cat_orig = data_prev[i].data,
-            cat_new = data_new[i].data;
+      let i = 0;
+      for (let i_cat = 0; i_cat < data.length; ++i_cat) {
+        const cat = data[i_cat].data;
+        const cat_orig = data_prev[i_cat].data;
+        const cat_new = data_new[i_cat].data;
 
-        for (var j=0; j < cat.length; ++j, ++n) {
-          var t_start = n * (t - overlap),
-              t_end = t_start + t,
-              progress = math.clamp((_n - t_start) / t, 0, 1),
-              progress_eased = fn_easing(progress),
-              delta = (cat_new[j] - cat_orig[j]);
-          cat[j] = delta * progress_eased + cat_orig[j];
+        for (let i_value = 0; i_value < cat.length; ++i_value, ++i) {
+          const t_start = i * (t - overlap);
+          const t_end = t_start + t;
+          const progress = math.clamp((frame - t_start) / t, 0, 1);
+          const progress_eased = fn_easing(progress);
+          const delta = (cat_new[i_value] - cat_orig[i_value]);
+
+          cat[i_value] = delta * progress_eased + cat_orig[i_value];
         }
       }
 
       draw_all();
-      if (_n >= max) {
+      if (frame >= 100) {
         animQueue.finishTask();
       }
     };
   }
 
-  function animTask_applyHighlight(ind) {
-    var _n = 0,
-        max = 10,
-        step = 0.5,
-        temp_highlight_ind = dvals.highlighted_item,
-        is_removing = (ind == -1);
+
+  function animtask__highlight(ind) {
+    let frame = 0;
+    const is_removing = (ind === -1);
 
     return function() {
-      // if (ind == temp_highlight_ind) {
-      //   animQueue.finishTask();
-      //   return;
-      // }
-      _n += step;
-      dvals.highlighted_item = is_removing ? dvals.highlighted_item : ind;
+      frame = Math.min(frame + 5, 100);
+      highlight.item = is_removing ? highlight.item : ind;
 
-      var t = math.easeOutCubic_Simple(_n/max);
-      dvals.highlight_progress = is_removing ? 1 - t : t;
+      const t = math.ease_out_cubic_simple(frame / 100);
+      highlight.progress = is_removing ? 1 - t : t;
 
-      if (_n >= max) {
+      if (frame >= 100) {
+        highlight.progress = 1;
         if (is_removing) {
-          dvals.highlighted_item = null;
+          highlight.item = null;
         }
-        dvals.highlight_progress = 1;
         animQueue.finishTask();
       }
       draw_all();
@@ -356,29 +271,20 @@ function bar_chart(el_canvas, data, options, category_labels) {
 
   return {
     draw() {
-      animQueue.add(animTask_animateBarsIn());
+      animQueue.add(animtask__from_zero());
       animQueue.start();
     },
-    updateData(new_categories) {
+    update_data(new_categories) {
       if (new_categories.length != data.length) {
-        console.log('BarChart.updateData() - wrong number of new_categories');
+        console.log('BarChart.update_data() - wrong number of new_categories');
         return;
       }
-      animQueue.add(animTask_animateDataTo(new_categories, math.easeInOutCubic_Simple));
+      animQueue.add(animtask__new_values(new_categories, math.ease_in_out_cubic_simple));
       animQueue.start();
     },
-    setHighlightedItem(title) {
-      var ind = (function() {
-        for (var i=0; i < data.length; ++i) {
-          if (data[i].title == title)
-            return i;
-        }
-        return -1;
-      })();
-      // if (dvals.highlighted_item !== null) {
-      //   animQueue.add(animTask_applyHighlight());
-      // }
-      animQueue.add(animTask_applyHighlight(ind));
+    set_highlight(title) {
+      const ind = helpers.find(data, item => item.title === title)
+      animQueue.add(animtask__highlight(ind));
       animQueue.start();
     },
     tearDown() {

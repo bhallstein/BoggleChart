@@ -280,7 +280,7 @@ function pie_chart(el_canvas, data, options, click_callback) {
   }
   function animTask_animateValuesTo(new_data, fn_easing) {
     // new_data is in the form [ value, value, ... ]
-    fn_easing = fn_easing || math.easeOutCubic_Simple;
+    fn_easing = fn_easing || math.ease_out_cubic_Simple;
     var _n = 0,
         max = 100,
         step = 4,
@@ -393,7 +393,7 @@ function pie_chart(el_canvas, data, options, click_callback) {
         console.log('PieChart.updateData() - new_vals wrong length');
         return;
       }
-      animQueue.add(animTask_animateValuesTo(new_vals, math.easeInOutCubic_Simple));
+      animQueue.add(animTask_animateValuesTo(new_vals, math.ease_in_out_cubic_simple));
       animQueue.start();
     },
     setInnerLabel: function(txt) {

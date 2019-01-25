@@ -186,7 +186,7 @@ function line_chart(el_canvas, data, options, category_labels) {
         return accum;
       }, [ ]);
 
-      const line_segments = math.bezCurve(c, arr, tension);
+      const line_segments = math.bezier_curve(c, arr, tension);
       const top_clip =
         axis_frame.t +
         (o.top_x_axis ? o.top_x_axis_width/2 : 0) +
@@ -311,7 +311,7 @@ function line_chart(el_canvas, data, options, category_labels) {
   }
 
 
-  function animtask__draw_line(line) {
+  function animtask__line(line) {
     let n = 0;
 
     return function() {
@@ -326,7 +326,7 @@ function line_chart(el_canvas, data, options, category_labels) {
   }
 
 
-  function animtask_draw_points(line) {
+  function animtask__points(line) {
     let n = 0;
 
     return function() {
@@ -346,12 +346,12 @@ function line_chart(el_canvas, data, options, category_labels) {
 
     data.forEach(line => {
       if (line.draw_points) {
-        if (line.animate_points) { animQueue.add(animtask_draw_points(line)); }
+        if (line.animate_points) { animQueue.add(animtask__points(line)); }
         else { line.progress_points = 100; }
       }
 
       if (line.draw_line !== false) {
-        if (line.animate_line) { animQueue.add(animtask__draw_line(line)); }
+        if (line.animate_line) { animQueue.add(animtask__line(line)); }
         else                   { line.progress = 100; }
       }
     });
