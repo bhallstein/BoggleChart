@@ -22,16 +22,79 @@
       canvas,
       [
         {
-          name: 'Infrastructure',
-          color: '10aded',
+          name:  'Infrastructure',
+          color: '18d1f8',
+          dates: [
+            {
+              start_date: new Date('January 1, 2019'),
+              end_date: new Date('January 20, 2019'),
+            },
+            {
+              start_date: new Date('March 1, 2019'),
+              end_date: new Date('June 1, 2019'),
+            },
+          ],
+          deliverables: [
+            {
+              date: new Date('January 20, 2019'),
+            },
+            {
+              date: new Date('March 1, 2019'),
+            },
+            {
+              date: new Date('May 21, 2019'),
+            },
+          ],
         },
         {
-          name: 'Muffins',
-          color: 'de1e7e',
+          name:  'Muffins',
+          color: '24ddbe',
+          start_date: new Date('February 15, 2019'),
+          end_date: new Date('December 31, 2019'),
+          deliverables: [
+            {
+              date: new Date('March 20, 2019'),
+            },
+            {
+              date: new Date('April 30, 2019'),
+            },
+            {
+              date: new Date('August 15, 2019'),
+            },
+            {
+              date: new Date('December 20, 2019'),
+            },
+          ],
+        },
+        {
+          name: 'Something',
+          color: 'ff9d4d',
+          dates: [
+            {
+              start_date: new Date('January 1, 2019'),
+              end_date: new Date('April 15, 2019'),
+            },
+            {
+              start_date: new Date('August 13, 2019'),
+              end_date: new Date('November 1, 2019'),
+            }
+          ],
+          deliverables: [
+            {
+              date: new Date('January 10, 2019'),
+            },
+            {
+              date: new Date('April 15, 2019'),
+            },
+            {
+              date: new Date('October 20, 2019'),
+            },
+          ],
         },
       ],
       {
-
+        start_date: new Date('January 1, 2019'),
+        gridlines: true,
       }
     );
   </script>
