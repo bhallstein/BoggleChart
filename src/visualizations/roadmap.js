@@ -76,17 +76,11 @@ function roadmap(el_canvas, streams, options) {
   }
   function mouse_down(ev) {
     const d = deliverable_for_event(ev);
-    if (d) {
-      selection.deliverable = d;
-      draw_all();
-    }
+    anim_queue.add(animtask__select_deliverable(d));
+    anim_queue.start();
   }
   function mouse_up(ev) {
-    const d = deliverable_for_event(ev);
-    if (!d) {
-      selection.deliverable = null;
-      draw_all();
-    }
+
   }
 
   function deliverable_for_event(ev) {
@@ -120,12 +114,13 @@ function roadmap(el_canvas, streams, options) {
 
   const anim_queue = AnimQueue();
   const highlight = {
-    item: 0,
-    progress: 1,
+    item: null,
+    progress: 0,
   };
 
   const selection = {
     deliverable: null,   // index in roadmap
+    progress: 0,
   };
 
   function m(x) { return g.pr * x; }
@@ -218,13 +213,14 @@ function roadmap(el_canvas, streams, options) {
         const x = o.padding_h + w * df;
 
         const r = o.stream_line_width;
-        const rk = deliv === selection.deliverable ? 1.5 : 1;
+        const rk = 1 + (deliv !== selection.deliverable ? 0 : math.ease_out_cubic_simple(selection.progress) * 0.6);
+        const rj = math.ease_out_cubic_simple(deliv.draw_progress || 0);
         const stroke = 5/8 * o.stream_line_width * rk;
 
         deliv.__position = [x, y];
 
         c.beginPath();
-        c.arc(x, y, m(r) * rk, 0, 2 * Math.PI);
+        c.arc(x, y, m(r) * rk * rj || 0, 0, 2 * Math.PI);
         c.fillStyle = 'white';
         c.fill();
 
@@ -292,6 +288,8 @@ function roadmap(el_canvas, streams, options) {
       c.restore();
     }
 
+    c.globalAlpha = selection.progress;
+
     draw.round_rect(c, stroke_bounds.x, stroke_bounds.y, popup_w, popup_h, popup_radius, d.__color);
     shadow_on();
     draw.popup_box(...popup_args);
@@ -305,6 +303,8 @@ function roadmap(el_canvas, streams, options) {
 
     draw.text(...targs__title);
     draw.text(...targs__date);
+
+    c.globalAlpha = 1;
   }
 
 
@@ -322,27 +322,51 @@ function roadmap(el_canvas, streams, options) {
 
   function do_draw() {
     anim_queue.reset();
-    anim_queue.add(animtask__initial());
+    anim_queue.add(animtask__delayed_time_series(all_deliverables(), 0.2, 0.1, 0.025));
+    anim_queue.add(animtask__delayed_time_series(streams, 0.3, 0.2, 0.03));
     anim_queue.start();
   }
 
 
-  function animtask__initial() {
-    let stream_draw_progress = 0;
+  function animtask__delayed_time_series(arr, time_for_item, overlap, time_increment) {
+    let progress = 0;
 
     return function() {
-      const time_progress = math.delayed_time_series(streams.length, 0.6, 0.2, stream_draw_progress);
-      streams.forEach((s, i) => s.draw_progress = time_progress[i]);
+      const time_progress = math.delayed_time_series(arr.length, time_for_item, overlap, progress);
+      arr.forEach((item, i) => item.draw_progress = time_progress[i]);
 
       draw_all();
 
-      stream_draw_progress = Math.min(stream_draw_progress + 0.03, 1);
-      if (stream_draw_progress === 1) {
+      progress = Math.min(progress + time_increment, 1);
+      if (progress === 1) {
         anim_queue.finishTask();
-        streams.forEach(s => s.draw_progress = 1);
+        arr.forEach(item => item.draw_progress = 1);
         draw_all();
       }
     };
+  }
+
+
+  function animtask__select_deliverable(d) {
+    selection.deliverable = d;
+    selection.progress = 0;
+
+    if (!d) {
+      return function() {
+        anim_queue.finishTask();
+        draw_all();
+      }
+    }
+
+    return function() {
+      draw_all();
+
+      selection.progress = Math.min(selection.progress + 0.125, 1);
+      if (selection.progress === 1) {
+        anim_queue.finishTask();
+        draw_all();
+      }
+    }
   }
 
 
