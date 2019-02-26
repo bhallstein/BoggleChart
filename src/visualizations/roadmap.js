@@ -57,14 +57,11 @@ function roadmap(el_canvas, streams, options) {
 
   function unbind() {
     el_canvas.removeEventListener('BoggleChart:resize', draw_all);
+    el_canvas.removeEventListener('mousemove', mouse_move);
+    el_canvas.removeEventListener('mousedown', mouse_down);
+    el_canvas.removeEventListener('mouseup', mouse_up);
   }
 
-  function mouse_enter(ev) {
-
-  }
-  function mouse_leave(ev) {
-
-  }
   function mouse_move(ev) {
     const d = deliverable_for_event(ev);
     if (!d) {
@@ -103,8 +100,9 @@ function roadmap(el_canvas, streams, options) {
 
   function all_deliverables() {
     return streams.reduce((accum, stream) => {
-      stream.deliverables.forEach(d => d.__color = stream.color);
-      return accum.concat(stream.deliverables || [ ]);
+      const delivs = stream.deliverables || [ ];
+      delivs.forEach(d => d.__color = stream.color);
+      return accum.concat(delivs);
     }, [ ]);
   }
 
@@ -278,35 +276,37 @@ function roadmap(el_canvas, streams, options) {
       return out;
     })();
 
-    function shadow_on() {
+    function shadow_on(opacity) {
       c.save()
-      c.shadowColor = '#cecece';
-      c.shadowBlur = m(10);
+      c.shadowColor = `rgba(207,207,207,${opacity})`;
+      c.shadowBlur = m(9);
       c.shadowOffsetY = m(2);
     }
     function shadow_off() {
       c.restore();
     }
 
-    c.globalAlpha = selection.progress;
+    const shadow_progress = math.clamp((selection.progress - 0.5)/0.5, 0, 1);
+    const main_progress = math.clamp(selection.progress/0.5, 0, 1);
+    console.log('shadow', shadow_progress, 'main', main_progress);
 
-    draw.round_rect(c, stroke_bounds.x, stroke_bounds.y, popup_w, popup_h, popup_radius, d.__color);
-    shadow_on();
-    draw.popup_box(...popup_args);
+    c.globalAlpha = main_progress;
+
+    shadow_on(shadow_progress);
+    draw.popup_box(...popup_args, false, d.__color);
     shadow_off();
 
     targs__title[2] = bounds.x + popup_padding;
-    targs__title[3] = bounds.y + popup_padding;
+    targs__title[3] = bounds.y + popup_padding - m(3);
 
     targs__date[2] = bounds.x + popup_padding;
-    targs__date[3] += bounds.y + popup_padding;
+    targs__date[3] += bounds.y + popup_padding - m(3);
 
     draw.text(...targs__title);
     draw.text(...targs__date);
 
     c.globalAlpha = 1;
   }
-
 
 
   function draw_all() {
@@ -361,7 +361,7 @@ function roadmap(el_canvas, streams, options) {
     return function() {
       draw_all();
 
-      selection.progress = Math.min(selection.progress + 0.125, 1);
+      selection.progress = Math.min(selection.progress + 0.08, 1);
       if (selection.progress === 1) {
         anim_queue.finishTask();
         draw_all();

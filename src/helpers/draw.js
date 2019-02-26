@@ -85,7 +85,7 @@ function round_rect(context, x, y, w, h, radius, color) {
 }
 
 
-function popup_box(context, x, y, w, h, canvas_w, canvas_h, radius, color, measure) {
+function popup_box(context, x, y, w, h, canvas_w, canvas_h, radius, color, measure, stroke_color) {
   // draw a popup box focused on (x,y) - i.e. with a 'pointer triangle' pointing to that point
   const triangle_height = radius * 1.35;
   const triangle_width  = radius * 2.2;
@@ -103,17 +103,17 @@ function popup_box(context, x, y, w, h, canvas_w, canvas_h, radius, color, measu
   const x_in_left_half = x <= canvas_w/2;
   const y_in_top_half  = y <= canvas_h/2;
 
-  const triangle_box_side = (function() {
+  const pointer_side = (function() {
     if (bounds.y + h > canvas_h) { return BOTTOM; }
     if (bounds.x + w > canvas_w) { return RIGHT; }
     if (bounds.x < 0) { return LEFT; }
     return TOP;
   })();
 
-  const triangle_near_or_far = (function() {
-    if (triangle_box_side === TOP)    { return x_in_left_half ? NEAR : FAR;  }
-    if (triangle_box_side === BOTTOM) { return x_in_left_half ? FAR  : NEAR; }
-    if (triangle_box_side === RIGHT)  { return y_in_top_half ? NEAR : FAR; }
+  const pointer_near_or_far = (function() {
+    if (pointer_side === TOP)    { return x_in_left_half ? NEAR : FAR;  }
+    if (pointer_side === BOTTOM) { return x_in_left_half ? FAR  : NEAR; }
+    if (pointer_side === RIGHT)  { return y_in_top_half  ? NEAR : FAR;  }
     return y_in_top_half ? FAR : NEAR;
   })();
 
@@ -130,9 +130,9 @@ function popup_box(context, x, y, w, h, canvas_w, canvas_h, radius, color, measu
 
     [LEFT + NEAR]:  {  x: x + triangle_height,  y: y - triangle_width/2 - triangle_vpos__far  },
     [LEFT + FAR]:   {  x: x + triangle_height,  y: y - triangle_width/2 - triangle_vpos__near },
-  }[triangle_box_side + triangle_near_or_far];
+  }[pointer_side + pointer_near_or_far];
 
-  bounds.pointer_side = triangle_box_side;
+  bounds.pointer_side = pointer_side;
 
   if (measure) {
     return bounds;
@@ -158,21 +158,42 @@ function popup_box(context, x, y, w, h, canvas_w, canvas_h, radius, color, measu
   context.beginPath();
   context.moveTo(bounds.x + radius, bounds.y);
 
-  if (triangle_box_side === TOP) { draw_vertical_triangle(x, y, triangle_box_side); }
+  if (pointer_side === TOP) { draw_vertical_triangle(x, y, pointer_side); }
   context.arcTo(bounds.x+w, bounds.y, bounds.x+w, bounds.y+radius, radius);
 
-  if (triangle_box_side === RIGHT) { draw_horizontal_triangle(x, y, triangle_box_side); }
+  if (pointer_side === RIGHT) { draw_horizontal_triangle(x, y, pointer_side); }
   context.arcTo(bounds.x+w, bounds.y+h, bounds.x + w - radius, bounds.y+h, radius);
 
-  if (triangle_box_side === BOTTOM) { draw_vertical_triangle(x, y, triangle_box_side); }
+  if (pointer_side === BOTTOM) { draw_vertical_triangle(x, y, pointer_side); }
   context.arcTo(bounds.x, bounds.y+h, bounds.x, bounds.y + h - radius, radius);
 
-  if (triangle_box_side === LEFT) { draw_horizontal_triangle(x, y, triangle_box_side); }
+  if (pointer_side === LEFT) { draw_horizontal_triangle(x, y, pointer_side); }
   context.arcTo(bounds.x, bounds.y, bounds.x+radius, bounds.y, radius);
 
   context.fillStyle = color;
   context.fill();
   context.closePath();
+
+
+  if (stroke_color && pointer_side !== BOTTOM) {
+    const stroke_width = 4;
+    const y_stroketop = bounds.y + h - stroke_width;
+    context.save();
+    context.shadowColor = 'transparent';
+
+    context.beginPath();
+    context.moveTo(bounds.x, bounds.y + h - radius);
+    context.arcTo(bounds.x, bounds.y + h, bounds.x + radius, bounds.y + h, radius);
+    context.arcTo(bounds.x + w, bounds.y + h, bounds.x + w, bounds.y + h - radius, radius);
+    context.arcTo(bounds.x + w, y_stroketop, bounds.x + radius, y_stroketop, radius - 1);
+    context.arcTo(bounds.x, y_stroketop, bounds.x, bounds.y + h - radius, radius - 1);
+
+    context.fillStyle = stroke_color,
+    context.fill();
+    context.closePath();
+
+    context.restore();
+  }
 
   return bounds;
 }
