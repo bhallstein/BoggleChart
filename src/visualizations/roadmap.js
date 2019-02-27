@@ -73,11 +73,15 @@ function roadmap(el_canvas, streams, options) {
   }
   function mouse_down(ev) {
     const d = deliverable_for_event(ev);
-    anim_queue.add(animtask__select_deliverable(d));
-    anim_queue.start();
+    select_deliverable(d);
   }
   function mouse_up(ev) {
 
+  }
+
+  function select_deliverable(d) {
+    anim_queue.add(animtask__select_deliverable(d));
+    anim_queue.start();
   }
 
   function deliverable_for_event(ev) {
@@ -111,13 +115,10 @@ function roadmap(el_canvas, streams, options) {
   // ----------------------------------------------------------
 
   const anim_queue = AnimQueue();
-  const highlight = {
-    item: null,
-    progress: 0,
-  };
 
   const selection = {
-    deliverable: null,   // index in roadmap
+    deliverable: null,
+    stream: null,
     progress: 0,
   };
 
@@ -173,10 +174,10 @@ function roadmap(el_canvas, streams, options) {
         date_ranges.push({start: s.start, end: s.end});
       }
 
-      let alpha;
-      if (highlight.item === null)   { alpha = 1; }
-      else if (highlight.item === i) { alpha = 1; }
-      else                           { alpha = (1 - highlight.progress) * (1 - min_alpha) + min_alpha; }
+      let alpha = 1;
+      // if (selection.deliverable === null)                 { alpha = 1; }
+      // else if (selection.deliverable.__stream === stream) { alpha = 1; }
+      // else                                                { alpha = (1 - selection.progress) * (1 - min_alpha) + min_alpha; }
 
       // Stream lines
       date_ranges.forEach(r => {
@@ -264,7 +265,7 @@ function roadmap(el_canvas, streams, options) {
     const popup_h = 2*popup_padding + 1.5 * fontsize__title + fontsize__date;
 
 
-    const popup_args = [ c, p[0], p[1] + m(4), popup_w, popup_h, g.w, g.h, popup_radius, 'white' ];
+    const popup_args = [ c, p[0], p[1], popup_w, popup_h, g.w, g.h, popup_radius, 'white' ];
     const bounds = draw.popup_box(...popup_args, true);
     const stroke_bounds = (_ => {
       const s = bounds.pointer_side;
@@ -287,8 +288,7 @@ function roadmap(el_canvas, streams, options) {
     }
 
     const shadow_progress = math.clamp((selection.progress - 0.5)/0.5, 0, 1);
-    const main_progress = math.clamp(selection.progress/0.5, 0, 1);
-    console.log('shadow', shadow_progress, 'main', main_progress);
+    const main_progress   = math.clamp(selection.progress/0.5, 0, 1);
 
     c.globalAlpha = main_progress;
 
@@ -348,23 +348,30 @@ function roadmap(el_canvas, streams, options) {
 
 
   function animtask__select_deliverable(d) {
-    selection.deliverable = d;
-    selection.progress = 0;
-
-    if (!d) {
-      return function() {
-        anim_queue.finishTask();
-        draw_all();
-      }
+    if (d) {
+      selection.deliverable = d;
+      selection.progress = 0;
     }
+
+    const increment = 0.090909;
 
     return function() {
       draw_all();
 
-      selection.progress = Math.min(selection.progress + 0.08, 1);
-      if (selection.progress === 1) {
+      if (d) {
+        selection.progress = Math.min(selection.progress + increment, 1);
+      }
+      else {
+        selection.progress = Math.max(selection.progress - increment, 0);
+      }
+
+      if (selection.progress === (d ? 1 : 0)) {
         anim_queue.finishTask();
         draw_all();
+
+        if (!d) {
+          selection.deliverable = null;
+        }
       }
     }
   }
@@ -372,6 +379,9 @@ function roadmap(el_canvas, streams, options) {
 
   return {
     draw: do_draw,
+
+    all_deliverables,
+    select_deliverable,
   };
 }
 

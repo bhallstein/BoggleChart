@@ -176,7 +176,7 @@ function popup_box(context, x, y, w, h, canvas_w, canvas_h, radius, color, measu
 
 
   if (stroke_color && pointer_side !== BOTTOM) {
-    const stroke_width = 4;
+    const stroke_width = 4 * context.canvas.pixel_ratio;
     const y_stroketop = bounds.y + h - stroke_width;
     context.save();
     context.shadowColor = 'transparent';
