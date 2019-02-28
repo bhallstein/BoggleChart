@@ -90,55 +90,49 @@ function popup_box(context, x, y, w, h, canvas_w, canvas_h, radius, color, measu
   const triangle_height = radius * 1.35;
   const triangle_width  = radius * 2.2;
 
-  const triangle_hpos__near = w / 3;
-  const triangle_hpos__far  = 2 * triangle_hpos__near;
+  const triangle_hpos__near = w / 3.5;
+  const triangle_hpos__far  = w - triangle_hpos__near;
   const triangle_vpos__near = h / 4;
   const triangle_vpos__far  = triangle_vpos__near;
 
+
+  // Calculate bounds
+  function inside_canvas(xy) {
+    return xy.x >= 0 && xy.x + w < canvas_w && xy.y >= 0 && xy.y + h < canvas_h;
+  }
+
   let bounds = {
-    x: x - triangle_width/2 - triangle_hpos__near,
-    y: y + triangle_height,
+    [TOP + NEAR]    : { x: x - triangle_hpos__near,                     y: y + triangle_height                         },
+    [TOP + FAR]     : { x: x - triangle_hpos__far,                      y: y + triangle_height                         },
+    [BOTTOM + NEAR] : { x: x - triangle_width/2 - triangle_hpos__far,   y: y - triangle_height - h                     },
+    [BOTTOM + FAR]  : { x: x - triangle_width/2 - triangle_hpos__near,  y: y - triangle_height - h                     },
+    [LEFT + NEAR]   : { x: x + triangle_height,                         y: y - triangle_width/2 - triangle_vpos__far   },
+    [LEFT + FAR]    : { x: x + triangle_height,                         y: y - triangle_width/2 - triangle_vpos__near  },
+    [RIGHT + NEAR]  : { x: x - triangle_height - w,                     y: y - triangle_width/2 - triangle_vpos__near  },
+    [RIGHT + FAR]   : { x: x - triangle_height - w,                     y: y - triangle_width/2 - triangle_vpos__far   },
   };
 
-  const x_in_left_half = x <= canvas_w/2;
-  const y_in_top_half  = y <= canvas_h/2;
-
-  const pointer_side = (function() {
-    if (bounds.y + h > canvas_h) { return BOTTOM; }
-    if (bounds.x + w > canvas_w) { return RIGHT; }
-    if (bounds.x < 0) { return LEFT; }
-    return TOP;
+  const [pointer_side, pointer_near_far] = (_ => {
+    return (
+      inside_canvas(bounds[TOP + NEAR])    ? [ TOP, NEAR ]    :
+      inside_canvas(bounds[TOP + FAR])     ? [ TOP, FAR ]    :
+      inside_canvas(bounds[BOTTOM + NEAR]) ? [ BOTTOM, NEAR ] :
+      inside_canvas(bounds[BOTTOM + FAR])  ? [ BOTTOM, FAR ]  :
+      inside_canvas(bounds[LEFT + NEAR])   ? [ LEFT, NEAR ]   :
+      inside_canvas(bounds[LEFT + FAR])    ? [ LEFT, FAR ]    :
+      inside_canvas(bounds[RIGHT + NEAR])  ? [ RIGHT, NEAR ]  :
+      [ RIGHT, FAR ]
+    );
   })();
 
-  const pointer_near_or_far = (function() {
-    if (pointer_side === TOP)    { return x_in_left_half ? NEAR : FAR;  }
-    if (pointer_side === BOTTOM) { return x_in_left_half ? FAR  : NEAR; }
-    if (pointer_side === RIGHT)  { return y_in_top_half  ? NEAR : FAR;  }
-    return y_in_top_half ? FAR : NEAR;
-  })();
-
-  // Recalculate bounds now that we know where the triangle is positioned
-  bounds = {
-    [TOP + NEAR]: {  x: x - triangle_hpos__near,  y: y + triangle_height  },
-    [TOP + FAR]:  {  x: x - triangle_hpos__far,   y: y + triangle_height  },
-
-    [BOTTOM + NEAR]: {  x: x - triangle_width/2 - triangle_hpos__far,   y: y - triangle_height - h  },
-    [BOTTOM + FAR]:  {  x: x - triangle_width/2 - triangle_hpos__near,  y: y - triangle_height - h  },
-
-    [RIGHT + NEAR]: {  x: x - triangle_height - w,  y: y - triangle_width/2 - triangle_vpos__near  },
-    [RIGHT + FAR]:  {  x: x - triangle_height - w,  y: y - triangle_width/2 - triangle_vpos__far   },
-
-    [LEFT + NEAR]:  {  x: x + triangle_height,  y: y - triangle_width/2 - triangle_vpos__far  },
-    [LEFT + FAR]:   {  x: x + triangle_height,  y: y - triangle_width/2 - triangle_vpos__near },
-  }[pointer_side + pointer_near_or_far];
-
-  bounds.pointer_side = pointer_side;
+  bounds = Object.assign(bounds[pointer_side + pointer_near_far], {pointer_side});
 
   if (measure) {
     return bounds;
   }
 
 
+  // Draw
   function draw_vertical_triangle(px, py, direction) {
     const k = direction === TOP ? 1 : -1;
 
