@@ -1,6 +1,7 @@
 import anim_queue from '../helpers/anim-queue';
 import helpers from '../helpers/helpers';
 import math from '../helpers/math';
+import draw from '../helpers/draw';
 
 
 function pie_chart(el_canvas, data, options, click_callback) {
@@ -237,18 +238,14 @@ function pie_chart(el_canvas, data, options, click_callback) {
     each_data_item(Draw.DataSegment);
   };
   Draw.InnerLabel = function() {
-    if (innerLabel === null) return;
+    if (innerLabel) {
+      const fontsize = 14 * gstate.pr;
+      const font     = `500 ${fontsize}px Roboto`;
 
-    var fontsize = 14 * gstate.pr;
-    c.font = '500 ' + fontsize + 'px Roboto';
-    c.textBaseline = 'middle';
-    c.textAlign = 'center';
-    c.fillStyle = options.innerLabel_color  || 'black';
-    c.globalAlpha = innerLabel_opac;
-    c.fillText(innerLabel,
-               gstate.width_pr / 2,
-               gstate.height_pr / 2);
-    c.globalAlpha = 1;
+      c.globalAlpha = innerLabel_opac;
+      draw.text(c, innerLabel, gstate.width_pr / 2, gstate.height_pr / 2, options.innerLabel_color  || 'black', font, 'center', 'middle');
+      c.globalAlpha = 1;
+    }
   };
 
   // Animation tasks
@@ -280,7 +277,7 @@ function pie_chart(el_canvas, data, options, click_callback) {
   }
   function animTask_animateValuesTo(new_data, fn_easing) {
     // new_data is in the form [ value, value, ... ]
-    fn_easing = fn_easing || math.ease_out_cubic_Simple;
+    fn_easing = fn_easing || math.ease_out_cubic_simple;
     var _n = 0,
         max = 100,
         step = 4,

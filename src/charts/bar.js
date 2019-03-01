@@ -1,6 +1,7 @@
 import anim_queue from '../helpers/anim-queue';
 import helpers from '../helpers/helpers';
 import math from '../helpers/math';
+import draw from '../helpers/draw';
 import line_chart from './line';
 
 const default_opts = {
@@ -149,14 +150,8 @@ function bar_chart(el_canvas, data, options, category_labels) {
       return;
     }
 
-    c.beginPath();
-    c.fillStyle = o.labels_x_color;
-
-    c.font = `400 ${o.labels_x_fontsize}px Roboto`;
-    c.textBaseline = 'top';
-    c.textAlign = 'center';
-
-    const y = g.h - 1.5 * o.labels_x_fontsize;
+    const font = `400 ${o.labels_x_fontsize}px Roboto`;
+    const y    = g.h - 1.5 * o.labels_x_fontsize;
 
     const n = data.length;          // n is the number of categories
     const m = data[0].data.length;  // m is the number of items
@@ -169,7 +164,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
       let x = a/2 + a*i + q*(i+1/2);
       x = x * (g.w - axis_frame.l - axis_frame.r) + axis_frame.l;
 
-      c.fillText(category_labels[i], x, y);
+      draw.text(c, category_labels[i], x, y, o.labels_x_color, font, 'center', 'top');
     }
   }
 

@@ -1,6 +1,7 @@
 import anim_queue from '../helpers/anim-queue';
 import helpers from '../helpers/helpers';
 import math from '../helpers/math';
+import draw from '../helpers/draw';
 
 
 function radar_chart(el_canvas, data, options) {
@@ -67,7 +68,7 @@ function radar_chart(el_canvas, data, options) {
         c.lineWidth = (options.axisNWidth || 2) * gstate.pr;
         c.strokeStyle = (options.axisNColor || 'black');
         if (options.axisStyle == 'dashed') {
-          c.setLineDash([ 2*gstate.pr, 5*gstate.pr, ]);
+          c.setLineDash([ 2*gstate.pr, 5*gstate.pr ]);
         }
       }
       else {

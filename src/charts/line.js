@@ -1,6 +1,7 @@
 import AnimQueue from '../helpers/anim-queue';
 import helpers from '../helpers/helpers';
 import math from '../helpers/math';
+import draw from '../helpers/draw';
 
 
 const default_opts = {
@@ -131,16 +132,10 @@ function line_chart(el_canvas, data, options, category_labels) {
       return;
     }
 
-    c.beginPath();
-    c.fillStyle = o.labels_x_color;
-
-    c.font = `400 ${o.labels_x_fontsize}px Roboto`;
-    c.textBaseline = 'top';
-    c.textAlign = 'center';
-
-    const w = g.w - axis_frame.l - axis_frame.r;
+    const w           = g.w - axis_frame.l - axis_frame.r;
     const h_increment = w / (data[0].data.length - 1);
-    const y = g.h - 1.5 * o.labels_x_fontsize;
+    const y           = g.h - 1.5 * o.labels_x_fontsize;
+    const font        = `400 ${o.labels_x_fontsize}px Roboto`;
 
     let labels;
     if (typeof category_labels === 'function') {
@@ -154,8 +149,7 @@ function line_chart(el_canvas, data, options, category_labels) {
 
     labels.filter(x => !!x).forEach((lbl, i) => {
       const x = axis_frame.l + i * h_increment;
-      c.moveTo(x, y);
-      c.fillText(lbl, x, y);
+      draw.text(c, lbl, x, y, o.labels_x_color, font, 'center', 'top');
     });
   }
 
@@ -246,13 +240,7 @@ function line_chart(el_canvas, data, options, category_labels) {
     const x  = axis_frame.l + rw;
     const y1 = g.h - axis_frame.b;
     const y2 = 0;
-
-    c.beginPath();
-    c.lineWidth   = o.hover_dropline_width;
-    c.strokeStyle = o.hover_dropline_color;
-    c.moveTo(x, y1);
-    c.lineTo(x, y2);
-    c.stroke();
+    draw.line(c, x, y1, x, y2, o.hover_dropline_color, o.hover_dropline_width);
 
     // Value
     const vx = x + o.hover_dropline_width/2;
@@ -262,9 +250,9 @@ function line_chart(el_canvas, data, options, category_labels) {
     }
     else {
       const fontsize = Math.min(0.08 * g.h, m(15));
-      c.font = `400 ${fontsize}px Roboto`;
+      c.font         = `400 ${fontsize}px Roboto`;
       c.textBaseline = 'top';
-      c.textAlign = 'start';
+      c.textAlign    = 'left';
       const v_hpad = m(8);
       const v_vpad = m(4);
       const lbl    = math.format_number(value, 0);
@@ -424,39 +412,19 @@ line_chart.draw_axes = function(c, g, axis_frame, o) {
   const y2   = axis_frame.t;
 
   if (o.x_axis) {
-    c.beginPath();
-    c.moveTo(x1_x, y1);
-    c.strokeStyle = o.x_axis_color;
-    c.lineWidth = o.x_axis_width;
-    c.lineTo(x2, y1);
-    c.stroke();
+    draw.line(c, x1_x, y1, x2, y1, o.x_axis_color, o.x_axis_width);
   }
 
   if (o.top_x_axis) {
-    c.beginPath();
-    c.moveTo(x1_x, y2);
-    c.strokeStyle = o.top_x_axis_color;
-    c.lineWidth = o.top_x_axis_width;
-    c.lineTo(x2, y2);
-    c.stroke();
+    draw.line(c, x1_x, y2, x2, y2, o.top_x_axis_color, o.top_x_axis_width);
   }
 
   if (o.y_axis) {
-    c.beginPath();
-    c.moveTo(x1_y, y1);
-    c.strokeStyle = o.y_axis_color;
-    c.lineWidth = o.y_axis_width;
-    c.lineTo(x1_y, y2);
-    c.stroke();
+    draw.line(c, x1_y, y1, x1_y, y2, o.y_axis_color, o.y_axis_width);
   }
 
   if (o.right_y_axis) {
-    c.beginPath();
-    c.moveTo(x2, y1);
-    c.strokeStyle = o.right_y_axis_color;
-    c.lineWidth = o.right_y_axis_width;
-    c.lineTo(x2, y2);
-    c.stroke();
+    draw.line(c, x2, y1, x2, y2, o.right_y_axis_color, o.right_y_axis_width);
   }
 };
 
@@ -465,13 +433,6 @@ line_chart.draw_gridlines = function(c, g, axis_frame, o, data) {
   const m = (x) => g.pr * x;
 
   function draw_gridlines_y(x_left, x_right, dashed) {
-    c.beginPath();
-    c.lineWidth   = o.gridlines_y_width;
-    c.strokeStyle = o.gridlines_y_color;
-    if (dashed) {
-      c.setLineDash([ m(2), m(5), ]);
-    }
-
     const h         = g.h - axis_frame.t - axis_frame.b;
     const increment = o.step * h / (o.max - o.min);
     const max       = o.top_x_axis ? o.max - 1 : o.max;
@@ -479,22 +440,11 @@ line_chart.draw_gridlines = function(c, g, axis_frame, o, data) {
     let y = g.h - axis_frame.b;
     for (let i = o.min + o.step; i <= max; i += o.step) {
       y -= increment;
-      c.moveTo(x_left, y);
-      c.lineTo(x_right, y);
+      draw.line(c, x_left, y, x_right, y, o.gridlines_y_color, o.gridlines_y_width, null, dashed ? [ m(2), m(5) ] : null);
     }
-
-    c.stroke();
-    c.setLineDash([]);
   }
 
   function draw_gridlines_x(y_btm, y_top, dashed) {
-    c.beginPath();
-    c.lineWidth   = o.gridlines_x_width;
-    c.strokeStyle = o.gridlines_x_color;
-    if (dashed) {
-      c.setLineDash([ m(2), m(5) ]);
-    }
-
     const w         = g.w - axis_frame.l - axis_frame.r;
     const increment = w / (data[0].data.length - 1);
     const min       = o.y_axis && !o.x_axis_extend_left ? 1 : 0;
@@ -505,11 +455,8 @@ line_chart.draw_gridlines = function(c, g, axis_frame, o, data) {
         continue;
       }
       const x = axis_frame.l + increment * i;
-      c.moveTo(x, y_btm);
-      c.lineTo(x, y_top);
+      draw.line(c, x, y_btm, x, y_top, o.gridlines_x_color, o.gridlines_x_width, null, dashed ? [ m(2), m(5) ] : null);
     }
-    c.stroke();
-    c.setLineDash([]);
   }
 
   if (o.gridlines_y || o.gridlines_y_ticks) {
