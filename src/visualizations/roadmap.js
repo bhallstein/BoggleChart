@@ -2,6 +2,7 @@ import AnimQueue from '../helpers/anim-queue';
 import helpers from '../helpers/helpers';
 import math from '../helpers/math';
 import draw from '../helpers/draw';
+import date from '../helpers/date';
 
 
 // Default opts
@@ -11,27 +12,40 @@ const default_opts = {
   start: () => first_of_this_month(),
   end:   (g, opts) => roadmap.add_days(opts.start, n_days_this_year() - 1),
 
-  gridlines: false,
-  gridlines_every: 'month',  // or 'week'
-  gridlines_width: 0.5,
+  gridlines:       false,
+  gridlines_width: 1,
   gridlines_color: '#ccc',
   gridlines_style: 'solid',
+  gridlines_minor:       false,
+  gridlines_minor_width: 1,
+  gridlines_minor_color: '#ccc',
+  gridlines_minor_style: 'dashed',
+
+  header:                 false,
+  header_fontsize:        (g) => Math.min(18, g.h * 0.03),
+  header_font:            '"Helvetica Neue", Helvetica, Arial',
+  header_color:           '#a9a9a9',
+  header_weight:          600,
+  header_vpadding:        (g) => Math.min(12, g.h * 0.015),
+  header_show_year:       true,
+  header_gridlines_color: '#a9a9a9',
+  header_gridlines_width: 2,
 
   stream_title_color:    '#333',
-  stream_line_width:     (g) => Math.min(8, g.h * 0.015),
+  stream_line_width:     (g) => Math.min(10, g.h * 0.015),
   stream_title_fontsize: (g) => Math.min(16, g.h * 0.032),
-  stream_date_fontsize:  (g) => Math.min(15, g.h * 0.032),
+  stream_date_fontsize:  (g) => Math.min(16, g.h * 0.032),
 
-  popup_title_font: '"Helvetica Neue", Helvetica, Arial',
+  popup_title_font:   '"Helvetica Neue", Helvetica, Arial',
   popup_title_weight: 900,
-  popup_title_color: 'black',
-  popup_title_size: 18,
-  popup_date_font: '"Helvetica Neue", Helvetica, Arial',
-  popup_date_weight: 900,
-  popup_date_color: 'aaa',
-  popup_date_size: 18,
+  popup_title_color:  'black',
+  popup_title_size:   18,
+  popup_date_font:    '"Helvetica Neue", Helvetica, Arial',
+  popup_date_weight:  900,
+  popup_date_color:   '#a9a9a9',
+  popup_date_size:    18,
 
-  padding_h: 10,
+  padding_h: 40,
 };
 
 const stream_defaults = {
@@ -64,12 +78,7 @@ function roadmap(el_canvas, streams, options) {
 
   function mouse_move(ev) {
     const d = deliverable_for_event(ev);
-    if (!d) {
-      el_canvas.style.cursor = 'default';
-      return;
-    }
-
-    el_canvas.style.cursor = 'pointer';
+    el_canvas.style.cursor = d ? 'pointer' : 'default';
   }
   function mouse_down(ev) {
     const d = deliverable_for_event(ev);
@@ -133,35 +142,98 @@ function roadmap(el_canvas, streams, options) {
   };
 
 
+  function header_height() {
+    return o.header ? o.header_fontsize + o.header_vpadding * 2 : 0;
+  }
+
+
+  function iterate_quarters(f) {
+    const a = o.start_aligned;
+    const b = o.end_aligned;
+
+    const months = Array.apply(null, {length: o.n_months - 1})
+      .map((_, i) => date.increment_month(a, i));
+
+    const quarter_boundary_months = [new Date(a)].concat(months)
+      .filter(date.is_quarter_boundary);
+
+    quarter_boundary_months.slice(0, -1).forEach((d, i) => {
+      const next = quarter_boundary_months[i + 1];
+      const last = i === quarter_boundary_months.length - 2;
+      const x1 = o.padding_h + o.w * date.fraction_of_date_range(d, [o.start, o.end]);
+      const x2 = o.padding_h + o.w * date.fraction_of_date_range(next, [o.start, o.end]);
+
+      f(d, Math.floor(x1) + 0.5, Math.floor(x2) + 0.5, last);
+    });
+  }
+
+
+  function draw_header_section() {
+    if (!o.header) {
+      return;
+    }
+
+    const font = `${o.header_weight} ${m(o.header_fontsize)}px ${o.header_font}`;
+
+    function divider(x) {
+      const y1 = m(o.header_vpadding);
+      const y2 = y1 + m(o.header_fontsize);
+      draw.line(c, x, y1, x, y2, o.header_gridlines_color, m(o.header_gridlines_width));
+    }
+
+    iterate_quarters((d, x1, x2, is_last) => {
+      const text = `Q${date.quarter_name(d)}` + (o.header_show_year ? ` ${d.getFullYear()}` : '');
+
+      draw.text(c, text, (x1 + x2) / 2, o.header_vpadding, o.header_color, font, 'center', 'top');
+
+      divider(x1);
+      if (is_last) {
+        divider(x2);
+      }
+    });
+  }
+
+
   function draw_gridlines() {
     if (!o.gridlines) {
       return;
     }
 
-    // Month-aligned gridlines between start & end dates
-    const w = g.w - 2 * o.padding_h;
-    const a = align_to_month_boundary(o.start);
-    const b = align_to_month_boundary(o.end, true);
+    const y_top = header_height();
+    const quarter_lines = [ ];
 
-    const n_months = (_ => {
-      let n = (b.getFullYear() - a.getFullYear()) * 12 - a.getMonth() + 1 + b.getMonth();
-      return Math.max(0, n) + 1;
-    })();
+    // Quarter gridlines
+    iterate_quarters((d, x1, x2, is_last) => {
+      quarter_lines.push(x1);
+      draw.line(c, x1, g.h, x1, y_top + m(1), o.gridlines_color, m(o.gridlines_width));
 
-    for (let i = 0; i < n_months; ++i) {
-      const d = new Date(a);
-      d.setMonth(a.getMonth() + i);
+      if (is_last) {
+        quarter_lines.push(x2);
+        draw.line(c, x2, g.h, x2, y_top + m(1), o.gridlines_color, m(o.gridlines_width));
+      }
+    });
 
-      const x = o.padding_h + w * date_as_fraction_of_date_range(d, [o.start, o.end]);
+    // Minor (month) gridlines
+    if (o.gridlines_minor) {
+      const a = o.start_aligned;
+      const b = o.end_aligned;
+      const dash = o.gridlines_minor_style === 'dashed' ? [ m(2), m(5) ] : null;
 
-      draw.line(c, x, g.h, x, 0, o.gridlines_color, m(o.gridlines_width));
+      for (let i = 0; i < o.n_months; ++i) {
+        const d = new Date(a);
+        d.setMonth(a.getMonth() + i);
+
+        const x = Math.floor(o.padding_h + o.w * date.fraction_of_date_range(d, [o.start, o.end])) + 0.5;
+        if (!quarter_lines.includes(x)) {
+          draw.line(c, x, g.h, x, y_top + m(1), o.gridlines_minor_color, m(o.gridlines_minor_width), null, dash);
+        }
+      }
     }
   }
 
 
   function draw_streams() {
     const vertical_space_per_stream = g.h / streams.length;
-    const w = g.w - 2 * o.padding_h;
 
     const min_alpha = 0.3;
 
@@ -184,14 +256,18 @@ function roadmap(el_canvas, streams, options) {
         const d_start = r.start;
         const d_end   = r.end;
 
-        const df_start = date_as_fraction_of_date_range(d_start, [o.start, o.end]);
-        const df_end   = date_as_fraction_of_date_range(d_end, [o.start, o.end]);
+        const df_start = date.fraction_of_date_range(d_start, [o.start, o.end]);
+        const df_end   = date.fraction_of_date_range(d_end, [o.start, o.end]);
 
-        const x1 = o.padding_h + w * df_start;
-        const x2 = o.padding_h + w * df_end;
+        const x1 = o.padding_h + o.w * df_start;
+        const x2 = o.padding_h + o.w * df_end;
         const x2_actual = (x2 - x1) * math.ease_out_cubic_simple(s.draw_progress) + x1;
 
-        draw.line(c, x1, y, x2_actual, y, s.color, m(o.stream_line_width), 'round', undefined, alpha);
+        draw.line(c, x1, y, x2_actual, y, s.color, m(o.stream_line_width), 'round', undefined, o.alpha);
+
+        if (r.name) {
+          draw.text(c, r.name, x1, y - m(o.stream_line_width) * 1.5, 'black', '600 16px Helvetica');
+        }
       });
 
 
@@ -208,8 +284,8 @@ function roadmap(el_canvas, streams, options) {
 
       // Deliverables
       (s.deliverables || [ ]).forEach(deliv => {
-        const df = date_as_fraction_of_date_range(deliv.date, [o.start, o.end]);
-        const x = o.padding_h + w * df;
+        const df = date.fraction_of_date_range(deliv.date, [o.start, o.end]);
+        const x = o.padding_h + o.w * df;
 
         const r = o.stream_line_width;
         const rk = 1 + (deliv !== selection.deliverable ? 0 : math.ease_out_cubic_simple(selection.progress) * 0.6);
@@ -252,7 +328,7 @@ function roadmap(el_canvas, streams, options) {
       c, d.name || '[no name]', 0, 0,  o.popup_title_color, font__title, 0, 'top'
     ];
     const targs__date = [
-      c, friendly_date_string(d.date), 0, fontsize__title * 1.4, o.popup_date_color, font__date, 0, 'top'
+      c, date.friendly_date_string(d.date), 0, fontsize__title * 1.4, o.popup_date_color, font__date, 0, 'top'
     ];
     const textsize__title = draw.text(...targs__title, true);
     const textsize__date  = draw.text(...targs__date, true);
@@ -267,15 +343,6 @@ function roadmap(el_canvas, streams, options) {
 
     const popup_args = [ c, p[0], p[1], popup_w, popup_h, g.w, g.h, popup_radius, 'white' ];
     const bounds = draw.popup_box(...popup_args, true);
-    const stroke_bounds = (_ => {
-      const s = bounds.pointer_side;
-      const out = Object.assign({}, bounds);
-      out.y += s === draw.TOP ? popup_stroke : 0;
-      out.y += s === draw.BOTTOM ? -popup_stroke : 0;
-      out.x += s === draw.LEFT ? popup_stroke : 0;
-      out.x += s === draw.RIGHT ? -popup_stroke : 0;
-      return out;
-    })();
 
     function shadow_on(opacity) {
       c.save()
@@ -311,9 +378,15 @@ function roadmap(el_canvas, streams, options) {
 
   function draw_all() {
     g.regen();
+
     o = helpers.get_opts(default_opts, options, g);
+    o.w             = g.w - 2 * m(o.padding_h);
+    o.start_aligned = date.align_to_month_boundary(o.start);
+    o.end_aligned   = date.align_to_month_boundary(o.end, true);
+    o.n_months      = date.full_months_between(o.start_aligned, o.end_aligned);
 
     c.clearRect(0, 0, g.w, g.h);
+    draw_header_section();
     draw_gridlines();
     draw_streams();
     draw_selected_deliverable();
@@ -388,71 +461,6 @@ function roadmap(el_canvas, streams, options) {
 
 // Date helpers
 // ----------------------------------------------------------
-
-function first_of_this_month() {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1);
-}
-
-function days_in_month(year, month) {
-  const is_28 = (new Date(year, month, 29)).getMonth() !== month;
-  const is_29 = (new Date(year, month, 30)).getMonth() !== month;
-  const is_30 = (new Date(year, month, 31)).getMonth() !== month;
-  return is_28 ? 28 :
-    is_29 ? 29 :
-    is_30 ? 30 : 31;
-}
-
-function n_days_this_year() {
-  const d = new Date();
-  const days_in_feb = days_in_month(d.getFullYear(), 1);
-  return days_in_feb === 28 ? 365 : 366;
-}
-
-roadmap.add_days = function(d, days) {
-  const d2 = new Date(d.getTime());
-  d2.setDate(d2.getDate() + days);
-  return d2;
-};
-
-function increment_month(d) {
-  const d2 = roadmap.add_days(d, 1);
-  return align_to_month_boundary(d2);
-}
-
-function align_to_month_boundary(d, align_prev) {
-  if (d.getDate() === 1) {
-    return new Date(d.getTime());
-  }
-
-  const d2 = new Date(d.getFullYear(), d.getMonth(), 1);
-
-  if (!align_prev) {
-    const days_to_add = days_in_month(d.getFullYear(), d.getMonth());
-    return roadmap.add_days(d2, days_to_add);
-  }
-
-  else {
-    const month = d.getMonth();
-    const year = d.getFullYear();
-    const days_to_remove = d === 0 ?
-      days_in_month(year - 1, 11) :
-      days_in_month(year, month - 1);
-    return roadmap.add_days(d2, days_to_remove);
-  }
-}
-
-function date_as_fraction_of_date_range(d, range) {
-  const x = d.getTime();
-  const a = range[0].getTime();
-  const b = range[1].getTime();
-
-  return (x - a) / (b - a);
-}
-
-function friendly_date_string(d) {
-  return `${d.toLocaleDateString('en-EN', {day: 'numeric', month: 'long'})}, ${d.getFullYear()}`;
-}
 
 
 export default roadmap;

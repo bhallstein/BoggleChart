@@ -114,13 +114,13 @@ function popup_box(context, x, y, w, h, canvas_w, canvas_h, radius, color, measu
 
   const [pointer_side, pointer_near_far] = (_ => {
     return (
-      inside_canvas(bounds[TOP + NEAR])    ? [ TOP, NEAR ]    :
-      inside_canvas(bounds[TOP + FAR])     ? [ TOP, FAR ]    :
+      inside_canvas(bounds[TOP    + NEAR]) ? [ TOP,    NEAR ] :
+      inside_canvas(bounds[TOP    + FAR])  ? [ TOP,    FAR  ] :
       inside_canvas(bounds[BOTTOM + NEAR]) ? [ BOTTOM, NEAR ] :
-      inside_canvas(bounds[BOTTOM + FAR])  ? [ BOTTOM, FAR ]  :
-      inside_canvas(bounds[LEFT + NEAR])   ? [ LEFT, NEAR ]   :
-      inside_canvas(bounds[LEFT + FAR])    ? [ LEFT, FAR ]    :
-      inside_canvas(bounds[RIGHT + NEAR])  ? [ RIGHT, NEAR ]  :
+      inside_canvas(bounds[BOTTOM + FAR])  ? [ BOTTOM, FAR  ] :
+      inside_canvas(bounds[LEFT   + NEAR]) ? [ LEFT,   NEAR ] :
+      inside_canvas(bounds[LEFT   + FAR])  ? [ LEFT,   FAR  ] :
+      inside_canvas(bounds[RIGHT  + NEAR]) ? [ RIGHT,  NEAR ] :
       [ RIGHT, FAR ]
     );
   })();
@@ -199,10 +199,5 @@ export default {
   text,
   round_rect,
   popup_box,
-
-  LEFT,
-  RIGHT,
-  BOTTOM,
-  TOP,
 };
 
