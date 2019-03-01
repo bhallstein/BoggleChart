@@ -10,7 +10,9 @@ export default function anim_queue() {
 
   var exp = {
     add: function(animTask) {
-      queue.push(animTask);
+      if (animTask) {
+        queue.push(animTask);
+      }
     },
     start: function() {
       if (intvl) return;

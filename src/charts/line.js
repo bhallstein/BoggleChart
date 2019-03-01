@@ -89,12 +89,12 @@ function line_chart(el_canvas, data, options, category_labels) {
     animQueue.triggerDraw();
   }
   function mouse_move(ev) {
-    const p = helpers.getOffset_canv(ev, el_canvas);
+    const p = helpers.get_offset_in_canvas(ev, el_canvas);
     hover_x = p.x - axis_frame.l;
     animQueue.triggerDraw();
   }
   function unbind() {
-    el_canvas.removeEventListener('BoggleChart:resize', cb_drawall);
+    el_canvas.removeEventListener('BoggleChart:resize', draw_all);
     el_canvas.removeEventListener('mousemove', mouse_move);
     el_canvas.removeEventListener('mouseenter', mouse_enter);
     el_canvas.removeEventListener('mouseleave', mouse_leave);
@@ -110,7 +110,7 @@ function line_chart(el_canvas, data, options, category_labels) {
   // Cache pixel ratio, canvas dimensions for convenience
   const g = {
     regen() {
-      g.pr = el_canvas.pixel_ratio,
+      g.pr = el_canvas.pixel_ratio;
       g.w  = el_canvas.width;
       g.h  = el_canvas.height;
     },
@@ -134,7 +134,7 @@ function line_chart(el_canvas, data, options, category_labels) {
     c.beginPath();
     c.fillStyle = o.labels_x_color;
 
-    c.font = '400 ' + o.labels_x_fontsize + 'px Roboto';
+    c.font = `400 ${o.labels_x_fontsize}px Roboto`;
     c.textBaseline = 'top';
     c.textAlign = 'center';
 
@@ -160,7 +160,7 @@ function line_chart(el_canvas, data, options, category_labels) {
   }
 
 
-  function draw_line(line) {
+  function draw_series_line(line) {
     const line_width = m(line.lineWidth || 1.75);
     c.lineWidth = line_width;
 
@@ -254,7 +254,7 @@ function line_chart(el_canvas, data, options, category_labels) {
     c.lineTo(x, y2);
     c.stroke();
 
-    // // Value
+    // Value
     const vx = x + o.hover_dropline_width/2;
     const vy = y2;
     if (typeof o.hover_value_draw_callback === 'function') {
@@ -262,7 +262,7 @@ function line_chart(el_canvas, data, options, category_labels) {
     }
     else {
       const fontsize = Math.min(0.08 * g.h, m(15));
-      c.font = '400 ' + fontsize + 'px Roboto';
+      c.font = `400 ${fontsize}px Roboto`;
       c.textBaseline = 'top';
       c.textAlign = 'start';
       const v_hpad = m(8);
@@ -272,7 +272,7 @@ function line_chart(el_canvas, data, options, category_labels) {
       const vw     = txt_sz.width + m(v_hpad);
       const vh     = fontsize + v_vpad;
 
-        let _vx = vx;
+      let _vx = vx;
       if (vx + vw >= axis_frame.l + w + axis_frame.r - m(3)) {
         _vx -= vw + o.hover_dropline_width;
       }
@@ -306,7 +306,7 @@ function line_chart(el_canvas, data, options, category_labels) {
     el_canvas.dispatchEvent(new CustomEvent('force_resize'));
 
     draw_frame();
-    data.forEach(line => draw_line(line));
+    data.forEach(line => draw_series_line(line));
     draw_hover();
   }
 
@@ -341,13 +341,13 @@ function line_chart(el_canvas, data, options, category_labels) {
   }
 
 
-  function draw() {
+  function do_draw() {
     animQueue.reset();
 
     data.forEach(line => {
       if (line.draw_points) {
         if (line.animate_points) { animQueue.add(animtask__points(line)); }
-        else { line.progress_points = 100; }
+        else                     { line.progress_points = 100; }
       }
 
       if (line.draw_line !== false) {
@@ -361,7 +361,7 @@ function line_chart(el_canvas, data, options, category_labels) {
 
 
   return {
-    draw,
+    draw: do_draw,
     drawFrame() {
       el_canvas.dispatchEvent(new CustomEvent('force_resize'));
       draw_frame();

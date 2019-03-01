@@ -126,9 +126,9 @@ function bar_chart(el_canvas, data, options, category_labels) {
 
       c.beginPath();
       c.globalAlpha = alpha;
-      c.fillStyle = cat.color || 'black';
+      c.fillStyle   = cat.color || 'black';
       c.strokeStyle = cat.outline || 'black';
-      c.lineWidth = line_w;
+      c.lineWidth   = line_w;
       for (let j = 0; j < cat_data.length; ++j, ++_i) {
         const value = cat_data[j];
         const x = (a/2 + j*(q + a) + i*(b + s)) + line_w/2 + axis_frame.l;
@@ -152,7 +152,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
     c.beginPath();
     c.fillStyle = o.labels_x_color;
 
-    c.font = '400 ' + o.labels_x_fontsize + 'px Roboto';
+    c.font = `400 ${o.labels_x_fontsize}px Roboto`;
     c.textBaseline = 'top';
     c.textAlign = 'center';
 

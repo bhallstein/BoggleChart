@@ -50,7 +50,7 @@ function pie_chart(el_canvas, data, options, click_callback) {
     setTimeout(_draw, 0);
   }
   function item_for_ev(ev) {
-    var p = helpers.getOffset_canv(ev, el_canvas);
+    var p = helpers.get_offset_in_canvas(ev, el_canvas);
     p.x -= gstate.width_pr / 2;
     p.y -= gstate.height_pr / 2;
 

@@ -14,7 +14,7 @@ function get_opts(default_opts, options, g) {
 }
 
 
-function getOffset(ev, el) {
+function get_offset(ev, el) {
   const rect = el.getBoundingClientRect();
   return {
     x: ev.clientX - rect.left,
@@ -23,10 +23,10 @@ function getOffset(ev, el) {
 }
 
 
-function getOffset_canv(ev, el) {
-  const p = getOffset(ev, el);
-  p.x = p.x * el.pixel_ratio;
-  p.y = p.y * el.pixel_ratio;
+function get_offset_in_canvas(ev, canvas) {
+  const p = get_offset(ev, canvas);
+  p.x = p.x * canvas.pixel_ratio;
+  p.y = p.y * canvas.pixel_ratio;
   return p;
 }
 
@@ -54,11 +54,11 @@ function totalData(arr, summation_property) {
 
 const months = [
   'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'July', 'August', 'September', 'October', 'November', 'December',
 ];
 const months_short = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 function monthName(date, short) {
   return (short ? months_short : months)[date.getMonth()];
@@ -83,8 +83,8 @@ function getJSON(url, cb_success, cb_err, cb_progr) {
 
 export default {
   get_opts,
-  getOffset,
-  getOffset_canv,
+  get_offset,
+  get_offset_in_canvas,
   clone,
   find,
   totalData,
