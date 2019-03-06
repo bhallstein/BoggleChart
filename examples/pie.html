@@ -16,32 +16,45 @@
   </div>
 
   <script src="dist/example.js"></script>
+  <script>
+    function round(x, n) {
+      const y = x * Math.pow(10, n);
+      return Math.round(y) / Math.pow(10, n);
+    }
+    function val() {
+      return Math.random()*0.75 + 0.25;
+    }
+  </script>
   <script id="init">
     const div = document.querySelector('#canvas-wrapper');
     const canvas = bogglechart.create_canvas(div);
+    const data = [ val(), val() ];
     const pie_chart = bogglechart.pie_chart(
       canvas,
       [
         {
-          title: 'Muffins',
+          title: `Blue: ${round(data[0], 2)}`,
           color: 'blue',
-          value: Math.random()*0.75 + 0.25,
+          value: data[0],
         },
         {
-          title: 'Lemurs',
+          title: `Yellow: ${round(data[1], 2)}`,
           color: 'yellow',
-          value: Math.random()*0.75 + 0.25,
+          value: data[1],
         },
       ],
       {
-        w_inner_line: 1.5,
-        w_outer_line: 1.5,
-        col_background: 'white',
+        inner_line_width: 3,
+        inner_line_color: '#ccc',
+        outer_line_width: 3,
+        outer_line_color: '#ccc',
+
         cutout_radius: 0.5,
+        interactions: true,
+        label: `${round(data[1], 2)} / ${round(data[0], 2)}`,
       }
     );
-    pie_chart.draw();
-    pie_chart.setInnerLabel('Muffins or Lemurs?');
+    pie_chart.draw__animate_in();
   </script>
   <script>
     (function() {
