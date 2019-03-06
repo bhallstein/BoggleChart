@@ -75,7 +75,7 @@ function line_chart(el_canvas, data, options, category_labels) {
   data.forEach(d => d.progress = 0);
 
 
-  // Mouse events
+  // Events
   // ----------------------------------------------------------
 
   if (options.interactions) {

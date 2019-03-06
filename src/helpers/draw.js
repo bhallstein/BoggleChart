@@ -24,6 +24,23 @@ function line(context, from_x, from_y, to_x, to_y, color, width, line_cap, dash,
 }
 
 
+function circle(context, x, y, radius, fill, stroke, stroke_width, start_angle, end_angle) {
+  const start = start_angle === undefined ? 0 : start_angle;
+  const end   = end_angle   === undefined ? 2 * Math.PI : end_angle;
+
+  context.beginPath();
+  context.fillStyle   = fill || 'transparent';
+  context.strokeStyle = stroke || 'transparent';
+  context.lineWidth   = stroke_width;
+
+  context.arc(x, y, radius, start, end);
+  context.fill();
+  context.stroke();
+
+  context.closePath();
+}
+
+
 function text(context, text, x, y, color, font, h_align, v_align, measure) {
   if (!measure) {
     context.beginPath();
@@ -60,6 +77,7 @@ function round_rect(context, x, y, w, h, radius, color) {
 
 export default {
   line,
+  circle,
   text,
   round_rect,
 };
