@@ -1,16 +1,16 @@
 {
   "name": "bogglechart",
   "description": "Charts for lemurs",
-  "version": "0.0.1j",
+  "version": "0.0.1l",
   "author": "Ben Hall <ben@ben.am> (https://ben.am/)",
   "license": {
     "type": "MIT",
-    "url": "https://github.com/bhallstein/BoggleChart/blob/master/LICENSE"
+    "url": "https://opensource.org/licenses/MIT"
   },
-  "homepage": "https://github.com/BrandwatchLtd/BoggleChart#readme",
+  "homepage": "https://github.com/bhallstein/BoggleChart",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BrandwatchLtd/BoggleChart.git"
+    "url": "git+https://github.com/bhallstein/BoggleChart.git"
   },
   "keywords": [
     "Charts"
