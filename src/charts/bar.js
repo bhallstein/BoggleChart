@@ -4,6 +4,7 @@ import math from '../helpers/math';
 import draw from '../helpers/draw';
 import line_chart from './line';
 
+
 const default_opts = {
   min: 0,
   max: 100,

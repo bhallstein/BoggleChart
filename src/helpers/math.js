@@ -164,6 +164,24 @@ function format_number(x, n_decimals) {
 }
 
 
+function delayed_time_series(n_items, item_length, delay, t) {
+  // - Return an array of item-relative times for a uniformly-delayed set of items
+  //   within an overall time period.
+  // - Useful when needing to draw a number of items each of whose progress needs to be scaled.
+
+  // Scale the values of item_length and delay to result in a total time of 1
+  const total_time = item_length + (n_items - 1) * delay;
+  delay /= total_time;
+  item_length /= total_time;
+
+  // Return an array of timings for each item in the set
+  const out = Array.apply(null, {length: n_items});
+  return out.map((_, i) => {
+    return clamp((t - delay * i) / item_length, 0, 1);
+  });
+}
+
+
 export default {
   clamp,
   ease_out_cubic,
@@ -173,5 +191,6 @@ export default {
   quadrant,
   angle_from_vertical,
   format_number,
+  delayed_time_series,
 };
 
