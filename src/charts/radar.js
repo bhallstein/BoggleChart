@@ -1,192 +1,199 @@
-import AnimQueue from '../AnimQueue';
-import helpers from '../helpers';
-import math from '../math';
+import anim_queue from '../helpers/anim-queue';
+import helpers from '../helpers/helpers';
+import math from '../helpers/math';
+import draw from '../helpers/draw';
+
+
+const default_opts = {
+  axis:      true,
+  axis_width: 1,
+  axis_color: 'black',
+  axis_style: 'normal',
+
+  axis_highlight_every: null,
+  axis_highlight_width: 2,
+  axis_highlight_color: 'black',
+  axis_highlight_style: 'normal',  // or 'dashed'
+
+  label:              false,
+  label_every:        1,
+  label_every_offset: 0,
+  label_position:     'line',  // or 'segment'
+  label_font_size:    14,
+  label_font_weight:  400,
+  label_font:         '"Helvetica Neue", Helvetica',
+  label_color:        'black',
+
+  padding: 0,
+};
+
 
 function radar_chart(el_canvas, data, options) {
-  var c = el_canvas.getContext('2d');
+  const c = el_canvas.getContext('2d');
+  let o;
 
-  el_canvas.addEventListener('BoggleChart:resize', cb_drawAll);
-  function cb_drawAll() {
-    Draw.All();
-  }
+
+  // Animation
+  // ----------------------------------------------------------
+
+  const animQueue = anim_queue();
+  animQueue.setDefaultDrawTask(draw_all);
+
+
+  // Events
+  // ----------------------------------------------------------
+
+  el_canvas.addEventListener('BoggleChart:resize', draw_all);
   function unbind() {
-    el_canvas.removeEventListener('BoggleChart:resize', cb_drawAll);
+    el_canvas.removeEventListener('BoggleChart:resize', draw_all);
   }
+
 
   // Drawing
   // ----------------------------------------------------------
-  var Draw = { };
 
-  var gstate = {
-    pr: null,
-    w: null,
-    h: null,
-    fontsz: null,
-    max_radius: null,
+  function m(x) { return g.pr * x; }
 
-    regen: function() {
-      gstate.pr = el_canvas.pixel_ratio;
-      gstate.w = el_canvas.width;
-      gstate.h = el_canvas.height;
-      gstate.fontsz = (options.label_font_size || 12) * gstate.pr;
-      gstate.max_radius = (function() {
-        var wh = Math.min(gstate.w, gstate.h);
-        wh -= (options.exterior_padding || 0) * 2 * gstate.h * gstate.pr;
-        if (options.labels) {
-          wh -= gstate.fontsz * 2;
-        }
-        return wh / 2;
-      })();
+  const g = {
+    regen() {
+      g.pr = el_canvas.pixel_ratio;
+      g.w  = el_canvas.width;
+      g.h  = el_canvas.height;
+      g.center = {
+        x: g.w / 2 - 0.5,
+        y: g.h / 2 - 0.5,
+      };
     },
   };
 
-  function each_data_item(cb) {
-    var p_centre = {
-      x: gstate.w/2 - 0.5,
-      y: gstate.h/2 - 0.5,
-    },
-    angle = Math.PI * 2 / data.data.length;
+  function max_radius() {
+    const diam = Math.min(g.w, g.h)
+      - 2 * m(o.padding)
+      - (o.labels ? m(o.label_font_size) * 3 : 0);
 
-    for (var i=0; i < data.data.length; ++i) {
-      var p_from = {
-        x: Math.sin(angle * i),
-        y: Math.sin(Math.PI*0.5 - angle*i),
-      };
-      p_from.x = p_centre.x + p_from.x * gstate.max_radius;
-      p_from.y = p_centre.y - p_from.y * gstate.max_radius;
-      cb(p_from, p_centre, angle, data.data[i], i);
-    }
+    return diam / 2;
   }
 
-  Draw.Axes = function() {
-    if (options.disableAxes) return;
-    each_data_item(function(point, p_centre, angle, dataitem, i) {
-      c.beginPath();
-      if (options.axisNHighlight && i%options.axisNHighlight == 0) {
-        c.lineWidth = (options.axisNWidth || 2) * gstate.pr;
-        c.strokeStyle = (options.axisNColor || 'black');
-        if (options.axisStyle == 'dashed') {
-          c.setLineDash([ 2*gstate.pr, 5*gstate.pr, ]);
-        }
+  function each_data_item(cb) {
+    const slice_angle = Math.PI * 2 / data.data.length;
+
+    data.data.forEach((item, i) => {
+      const vx = Math.sin(slice_angle * i);
+      const vy = Math.sin(Math.PI*0.5 - slice_angle*i);
+
+      const p = {
+        x: g.center.x + vx * max_radius(),
+        y: g.center.y + vy * max_radius(),
+      };
+
+      cb(p, slice_angle, item, i);
+    });
+  }
+
+  function line_dash() {
+    return o.axis_style === 'dashed' ? [ m(2), m(5) ] : null;
+  }
+  function highlight_line_dash() {
+    return o.axis_highlight_style === 'dashed' ? [ m(2), m(5) ] : null;
+  }
+
+
+  function draw_data_segment(point, slice_angle, item, i) {
+    if (item.draw_progress === undefined) {
+      item.draw_progress = 1;
+    }
+
+    const start_angle = -Math.PI/2 + slice_angle*i;
+    const end_angle   = -Math.PI/2 + slice_angle*(i+1);
+
+    // The item is scaled by radial area
+    const r_sq = item.value * Math.pow(max_radius(), 2) / data.max;
+    const r = Math.sqrt(r_sq) * math.ease_out_cubic_simple(item.draw_progress);
+
+    // NB to make proportional to radius rather than area, simpler:
+    //   r = item.value / data.max * gstate.max_radius * scale_factor;
+
+    draw.circle(c, g.center.x, g.center.y, r, item.color, null, null, start_angle, end_angle);
+  }
+
+
+  function draw_axes() {
+    if (!o.axis) {
+      return;
+    }
+    each_data_item(function(point, slice_angle, item, i) {
+      if (o.axis_highlight_every && i%o.axis_highlight_every === 0) {
+        draw.line(c, g.center.x, g.center.y, point.x, point.y, o.axis_highlight_color, m(o.axis_highlight_width), null, highlight_line_dash());
       }
       else {
-        c.lineWidth = (options.axisWidth || 1) * gstate.pr;
-        c.strokeStyle = (options.axisColor || 'black');
+        draw.line(c, g.center.x, g.center.y, point.x, point.y, o.axis_color, m(o.axis_width), null, line_dash());
       }
-      c.beginPath();
-      c.moveTo(p_centre.x, p_centre.y);
-      c.lineTo(point.x, point.y);
-      c.stroke();
     });
-  };
+  }
 
-  Draw.DataSegment = function(point, p_centre, angle, dataitem, i, scale_factor) {
-    if (typeof scale_factor === 'undefined') scale_factor = 1;
 
-    var start_angle = -Math.PI*0.5 + angle*i,
-        end_angle = -Math.PI*0.5 + angle*(i+1),
-        r_sq = dataitem.value * Math.pow(gstate.max_radius, 2) / data.max,
-        r = Math.sqrt(r_sq) * scale_factor;
-
-    // If need proportional to radius rather than area, then more simply:
-    //   r = dataitem.value / data.max * gstate.max_radius * scale_factor;
-
-    c.beginPath();
-    c.moveTo(p_centre.x, p_centre.y);
-    c.fillStyle = dataitem.color;
-    c.arc(p_centre.x, p_centre.y, r, start_angle, end_angle);
-    c.fill();
-  };
-
-  Draw.DataSegments = function() {
-    each_data_item(Draw.DataSegment);
-  };
-
-  Draw.Label = function(point, p_centre, angle, dataitem, i) {
-    var lbl_mod_denom = (options.label_every || 1);
-    var lbl_mod_numerator = i + (options.label_every_offset || 0);
-    if (lbl_mod_numerator%lbl_mod_denom !== 0) return;
-    c.font = '400 ' + (''+gstate.fontsz) + 'px Roboto';
-    c.fillStyle = options.label_col || 'black';
-    c.textBaseline = 'middle';
-    c.textAlign = 'center';
-    c.translate(gstate.w/2, gstate.h/2);
-    c.rotate(angle * (i + (options.label_position == 'segment' ? 0.5: 0)));
-    c.translate(-gstate.w/2, -gstate.h/2);
-
-    var x = p_centre.x;
-    var y = gstate.h/2 - gstate.max_radius - 1.5*gstate.fontsz;
-
-    c.fillText(dataitem.title, x, y);
-    c.setTransform(1, 0, 0, 1, 0, 0);
-  };
-
-  Draw.Labels = function() {
-    if (options.labels) {
-      each_data_item(Draw.Label);
+  function draw_label(point, slice_angle, item, i) {
+    if (!o.labels) {
+      return;
     }
-  };
 
-  Draw.All = function() {
+    if ((i - o.label_every_offset)%o.label_every !== 0) {
+      return;
+    }
+
+    const font = `${o.label_font_weight} ${o.label_font_size}px ${o.label_font}`;
+
+    c.translate(g.center.x, g.center.y);
+    c.rotate(slice_angle * (i + (o.label_position === 'segment' ? 0.5: 0)));
+    c.translate(-g.center.x, -g.center.y);
+
+    const x = g.center.x;
+    const y = g.center.x - max_radius() - o.label_font_size;
+
+    draw.text(c, item.title, x, y, o.label_color, font, 'center', 'middle');
+
+    c.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+
+  function draw_all() {
+    g.regen();
+    o = helpers.get_opts(default_opts, options, g);
+
     el_canvas.dispatchEvent(new CustomEvent('force_resize'));
-    gstate.regen();
-    c.clearRect(0, 0, gstate.w, gstate.h);
-    Draw.DataSegments();
-    Draw.Axes();
-    Draw.Labels();
-  };
 
-  var animQueue = AnimQueue();
-  animQueue.setDefaultDrawTask(Draw.All);
-  function animTask_drawSegmentsSequentially() {
-    var _n = 0,
-        step = 2,
-        max = 100,
-        t = 18,      // This is the duration of an individual segment animation
-        n_segments = data.data.length,
-        overlap = (n_segments*t - max) / (n_segments - 1);
+    c.clearRect(0, 0, g.w, g.h);
+
+    each_data_item(draw_data_segment);
+    draw_axes();
+    each_data_item(draw_label);
+  }
+
+
+  function animtask__animate_in() {
+    let n = 0;
 
     return function() {
-      _n = Math.min(_n+step, max);
-      el_canvas.dispatchEvent(new CustomEvent('force_resize'));
-      gstate.regen();
-      c.clearRect(0, 0, gstate.w, gstate.h);
+      n = Math.min(n + 0.02, 1);
 
-      each_data_item(function(point, p_centre, angle, dataitem, i) {
-        var t_start = i * (t - overlap),
-            t_end = t_start + t,
-            progress = math.clamp((_n - t_start) / t, 0, 1),
-            progress_eased = math.easeOutCubic(0, progress, 0, 1, 1);
+      const time_progress = math.delayed_time_series(data.data.length, 0.2, 0.05, n);
+      data.data.forEach((item, i) => item.draw_progress = time_progress[i]);
 
-        if (progress > 0) {
-          Draw.DataSegment.apply(this, [].slice.call(arguments).concat(progress_eased));
-        }
-      });
-      Draw.Axes();
+      draw_all();
 
-      c.globalAlpha = Math.min(_n*5 / max, max);
-      Draw.Labels();
-      c.globalAlpha = 1;
-
-      if (_n >= max) {
-        c.globalAlpha = 1;
+      if (n === 1) {
         animQueue.finishTask();
       }
     };
   }
 
-  function draw() {
-    animQueue.reset();
-    animQueue.add(animTask_drawSegmentsSequentially());
-    animQueue.start();
-  }
 
-  function rsz() {
-
-  }
-
-  var exp = {
-    draw: draw,
+  return {
+    draw: function() {
+      animQueue.reset();
+      animQueue.add(animtask__animate_in());
+      animQueue.start();
+    },
     tearDown: function() {
       unbind();
       animQueue.reset();
@@ -195,8 +202,6 @@ function radar_chart(el_canvas, data, options) {
       c = null;
     },
   };
-
-  return exp;
 }
 
 export default radar_chart;

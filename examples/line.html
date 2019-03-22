@@ -18,54 +18,56 @@
   <script src="dist/example.js"></script>
   <script id="init">
     const div = document.querySelector('#canvas-wrapper');
-    const canvas = bogglechart.createCanvas(div);
+    const canvas = bogglechart.create_canvas(div);
     const line_chart = bogglechart.line_chart(
       canvas,
       [
         {
-          title:       'Abuse',
-          style:       'solid',
-          lineWidth:   1.8,
-          drawLines:   true,
-          drawPoints:  false,
-          animPoints:  true,
-          tension:     0.0,
+          title:          'Abuse',
+          style:          'solid',
+          lineWidth:      1.8,
+          animate_line:   true,
+          draw_points:    true,
+          animate_points: true,
+          pointRadius:    2.8,
+          animPoints:     true,
+          tension:        0.0,
           data: [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
-            .map(_ => Math.random()).sort()
-            .map(x => x * 10),
+            .map(_ => Math.random() * 8.5)
+            .sort(),
         },
         {
-          title:       'Discussion',
-          color:       '#666',
-          style:       'solid',
-          lineWidth:   1.8,
-          drawLines:   true,
-          drawPoints:  false,
-          animPoints:  true,
-          tension:     0.0,
+          title:          'Discussion',
+          color:          'red',
+          style:          'solid',
+          lineWidth:      1.8,
+          animate_line:   true,
+          draw_points:    true,
+          animate_points: true,
+          pointRadius:    2.8,
+          tension:        0.0,
           data: [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
-            .map(_ => Math.random()).sort()
-            .map(x => x * 10),
+            .map(_ => Math.random() * 8.5)
+            .sort(),
         },
       ],
       {
         min: 0,
         max: 10,
-        axisX: true,
-        axisXTop: true,
-        axisWidthX: 1.3,
-        axisWidthXTop: 1.3,
-        gridLines: {
-          horizontal: true,
-          ticks_horizontal: true,
-          style_horizontal: 'dashed',
-        },
-        valueLabels_inside: true,
-        valueLabels_padding: 10,
-        valueLabels_labelMax: false,
-        step: 2,
-        valueLabels: true,
-        categoryLabels: true,
+
+        top_x_axis: true,
+        x_axis_extend_left: true,
+
+        labels_y_origin: false,
+        labels_y_max:    false,
+
+        gridlines_y: true,
+        gridlines_y_ticks: true,
+        gridlines_y_style: 'dashed',
+
+        gridlines_x: true,
+        gridlines_x_ticks: true,
+        gridlines_x_style: 'dashed',
       },
       [
         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
