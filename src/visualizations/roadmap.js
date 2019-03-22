@@ -9,8 +9,8 @@ import date from '../helpers/date';
 // ----------------------------------------------------------
 
 const default_opts = {
-  start: () => first_of_this_month(),
-  end:   (g, opts) => roadmap.add_days(opts.start, n_days_this_year() - 1),
+  start: date.first_of_this_month,
+  end:   (g, opts) => date.add_days(opts.start, date.n_days_this_year() - 1),
 
   gridlines:       false,
   gridlines_width: 1,
@@ -31,9 +31,11 @@ const default_opts = {
   header_gridlines_color: '#a9a9a9',
   header_gridlines_width: 2,
 
+  stream_title_font:     '"Helvetica Neue", Helvetica, Arial',
   stream_title_color:    '#333',
-  stream_line_width:     (g) => Math.min(10, g.h * 0.015),
+  stream_title_weight:   600,
   stream_title_fontsize: (g) => Math.min(16, g.h * 0.032),
+  stream_line_width:     (g) => Math.min(10, g.h * 0.015),
   stream_date_fontsize:  (g) => Math.min(16, g.h * 0.032),
 
   popup_title_font:   '"Helvetica Neue", Helvetica, Arial',
@@ -143,7 +145,7 @@ function roadmap(el_canvas, streams, options) {
 
 
   function header_height() {
-    return o.header ? o.header_fontsize + o.header_vpadding * 2 : 0;
+    return o.header ? m(o.header_fontsize) + m(o.header_vpadding * 2) : 0;
   }
 
 
@@ -266,7 +268,8 @@ function roadmap(el_canvas, streams, options) {
         draw.line(c, x1, y, x2_actual, y, s.color, m(o.stream_line_width), 'round', undefined, o.alpha);
 
         if (r.name) {
-          draw.text(c, r.name, x1, y - m(o.stream_line_width) * 1.5, 'black', '600 16px Helvetica');
+          const font = `${o.stream_title_weight} ${o.stream_title_fontsize}px`;
+          draw.text(c, r.name, x1, y - m(o.stream_line_width) * 1.5, o.stream_title_color, font);
         }
       });
 
@@ -405,16 +408,15 @@ function roadmap(el_canvas, streams, options) {
     let progress = 0;
 
     return function() {
+      progress = Math.min(progress + time_increment, 1);
+
       const time_progress = math.delayed_time_series(arr.length, time_for_item, overlap, progress);
       arr.forEach((item, i) => item.draw_progress = time_progress[i]);
 
       draw_all();
 
-      progress = Math.min(progress + time_increment, 1);
       if (progress === 1) {
         anim_queue.finishTask();
-        arr.forEach(item => item.draw_progress = 1);
-        draw_all();
       }
     };
   }
