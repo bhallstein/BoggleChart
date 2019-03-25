@@ -2,6 +2,7 @@ import bar_chart from './charts/bar';
 import line_chart from './charts/line';
 import pie_chart from './charts/pie';
 import radar_chart from './charts/radar';
+import roadmap from './visualizations/roadmap';
 
 import helpers from './helpers/helpers';
 import math from './helpers/math';
@@ -68,5 +69,7 @@ export {
   line_chart,
   pie_chart,
   radar_chart,
+
+  roadmap,
 };
 

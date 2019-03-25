@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>Roadmap</title>
+</head>
+
+<body>
+
+  <h1>Roadmap</h1>
+  <div id="canvas-wrapper" style="width: 800px; height: 400px;"></div>
+  <div style="font-family: Hack, Consolas, monospace">
+    <pre id="script-preview"></pre>
+  </div>
+
+  <script src="dist/example.js"></script>
+  <script id="init">
+    const canvas = bogglechart.create_canvas(document.querySelector('#canvas-wrapper'));
+    const roadmap = bogglechart.roadmap(
+      canvas,
+      [
+        {
+          name:  'Infrastructure',
+          color: '18d1f8',
+          dates: [
+            {
+              start_date: new Date('January 1, 2019'),
+              end_date: new Date('January 20, 2019'),
+            },
+            {
+              start_date: new Date('March 1, 2019'),
+              end_date: new Date('June 1, 2019'),
+            },
+          ],
+          deliverables: [
+            {
+              date: new Date('January 20, 2019'),
+            },
+            {
+              date: new Date('March 1, 2019'),
+            },
+            {
+              date: new Date('May 21, 2019'),
+            },
+          ],
+        },
+        {
+          name:  'Muffins',
+          color: '24ddbe',
+          start_date: new Date('February 15, 2019'),
+          end_date: new Date('December 31, 2019'),
+          deliverables: [
+            {
+              date: new Date('March 20, 2019'),
+            },
+            {
+              date: new Date('April 30, 2019'),
+            },
+            {
+              date: new Date('August 15, 2019'),
+            },
+            {
+              date: new Date('December 20, 2019'),
+            },
+          ],
+        },
+        {
+          name: 'Something',
+          color: 'ff9d4d',
+          dates: [
+            {
+              start_date: new Date('January 1, 2019'),
+              end_date: new Date('April 15, 2019'),
+            },
+            {
+              start_date: new Date('August 13, 2019'),
+              end_date: new Date('November 1, 2019'),
+            }
+          ],
+          deliverables: [
+            {
+              date: new Date('January 10, 2019'),
+            },
+            {
+              date: new Date('April 15, 2019'),
+            },
+            {
+              date: new Date('October 20, 2019'),
+            },
+          ],
+        },
+      ],
+      {
+        start_date: new Date('January 1, 2019'),
+        gridlines: true,
+      }
+    );
+  </script>
+  <script>
+    (function() {
+      const s = document.querySelector('#init').innerHTML;
+      document.querySelector('#script-preview').textContent = s;
+    })();
+  </script>
+
+</body>
+</html>
+
