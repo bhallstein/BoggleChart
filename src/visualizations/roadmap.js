@@ -38,6 +38,9 @@ const default_opts = {
   stream_line_width:     (g) => Math.min(10, g.h * 0.015),
   stream_date_fontsize:  (g) => Math.min(16, g.h * 0.032),
 
+  year_progress: false,
+  year_progress_color: '#f8f8f8',
+
   popup_title_font:   '"Helvetica Neue", Helvetica, Arial',
   popup_title_weight: 900,
   popup_title_color:  'black',
@@ -193,6 +196,18 @@ function roadmap(el_canvas, streams, options) {
         divider(x2);
       }
     });
+  }
+
+
+  function draw_year_progress_indicator() {
+    if (!o.year_progress) {
+      return;
+    }
+
+    const x1 = o.padding_h + date.fraction_of_date_range(o.start_aligned, [o.start, o.end]);
+    const x2 = o.padding_h + Math.min(o.end_aligned, o.w * date.fraction_of_date_range(new Date, [o.start, o.end]));
+
+    draw.round_rect(c, x1, 0, x2 - x1, g.h, 1, o.year_progress_color);
   }
 
 
@@ -390,6 +405,7 @@ function roadmap(el_canvas, streams, options) {
 
     c.clearRect(0, 0, g.w, g.h);
     draw_header_section();
+    draw_year_progress_indicator();
     draw_gridlines();
     draw_streams();
     draw_selected_deliverable();
