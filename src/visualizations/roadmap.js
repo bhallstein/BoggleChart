@@ -283,7 +283,7 @@ function roadmap(el_canvas, streams, options) {
         draw.line(c, x1, y, x2_actual, y, s.color, m(o.stream_line_width), 'round', undefined, o.alpha);
 
         if (r.name) {
-          const font = `${o.stream_title_weight} ${o.stream_title_fontsize}px ${o.stream_title_font}`;
+          const font = `${o.stream_title_weight} ${m(o.stream_title_fontsize)}px ${o.stream_title_font}`;
           draw.text(c, r.name, x1, y - m(o.stream_line_width) * 1.5, o.stream_title_color, font);
         }
       });
