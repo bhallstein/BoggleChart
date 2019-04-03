@@ -27,16 +27,16 @@ const default_opts = {
   right_y_axis_color: 'black',
 
   labels_y:          true,
-  labels_y_padding:  10,
-  labels_y_fontsize: (g) => 0.035 * g.h,
+  labels_y_padding:  12,
+  labels_y_fontsize: 12,
   labels_y_color:    'black',
   labels_y_origin:   true,
   labels_y_max:      true,
   labels_y_unit:     '',
 
   labels_x:          true,
-  labels_x_padding:  (g) => 0.02 * g.h,
-  labels_x_fontsize: (g) => 0.04 * g.h,
+  labels_x_padding:  12,
+  labels_x_fontsize: 12,
   labels_x_color:    'black',
 
   gridlines_x:         false,   // NB gridlines_x can be false while _ticks
@@ -134,8 +134,8 @@ function line_chart(el_canvas, data, options, category_labels) {
 
     const w           = g.w - axis_frame.l - axis_frame.r;
     const h_increment = w / (data[0].data.length - 1);
-    const y           = g.h - 1.5 * o.labels_x_fontsize;
-    const font        = `400 ${o.labels_x_fontsize}px Roboto`;
+    const y           = g.h - 0.8 * m(o.labels_x_fontsize);
+    const font        = `400 ${m(o.labels_x_fontsize)}px Roboto`;
 
     let labels;
     if (typeof category_labels === 'function') {
@@ -149,7 +149,7 @@ function line_chart(el_canvas, data, options, category_labels) {
 
     labels.filter(x => !!x).forEach((lbl, i) => {
       const x = axis_frame.l + i * h_increment;
-      draw.text(c, lbl, x, y, o.labels_x_color, font, 'center', 'top');
+      draw.text(c, lbl, x, y, o.labels_x_color, font, 'center', 'middle');
     });
   }
 
@@ -387,7 +387,7 @@ line_chart.label_padding_left = function(o) {
 };
 
 line_chart.btm_section_height = function(o, g) {
-  return o.labels_x ? o.labels_x_fontsize * 2 : g.pr * 2
+  return g.pr * (o.labels_x ? o.labels_x_fontsize * 2 : 2);
 };
 
 line_chart.top_section_height = function(o, g) {
