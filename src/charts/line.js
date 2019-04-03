@@ -451,7 +451,7 @@ line_chart.draw_gridlines = function(c, g, axis_frame, o, data) {
     const max       = o.right_y_axis ? 2 : 1;
 
     for (let i = min; i <= data[0].data.length - max; ++i) {
-      if (o.gridlines_x_divisor && i%gridlines_x_divisor !== 0) {
+      if (o.gridlines_x_divisor && i%o.gridlines_x_divisor !== 0) {
         continue;
       }
       const x = axis_frame.l + increment * i;
