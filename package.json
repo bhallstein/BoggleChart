@@ -1,7 +1,7 @@
 {
   "name": "bogglechart",
   "description": "Charts for lemurs",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "author": "Ben Hall <ben@ben.am> (https://ben.am/)",
   "license": {
     "type": "MIT",
