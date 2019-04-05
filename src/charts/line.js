@@ -34,10 +34,12 @@ const default_opts = {
   labels_y_max:      true,
   labels_y_unit:     '',
 
-  labels_x:          true,
-  labels_x_padding:  12,
-  labels_x_fontsize: 12,
-  labels_x_color:    'black',
+  labels_x:              true,
+  labels_x_padding:      12,
+  labels_x_fontsize:     12,
+  labels_x_color:        'black',
+  labels_x_every:        1,
+  labels_x_every_offset: 0,
 
   gridlines_x:         false,   // NB gridlines_x can be false while _ticks
   gridlines_x_ticks:   false,   //    is true - they're drawn separately
@@ -141,15 +143,19 @@ function line_chart(el_canvas, data, options, category_labels) {
     if (typeof category_labels === 'function') {
       labels = data[0].data
         .slice(0)
-        .map((_, i) => category_labels(i));
+        .map((_, i) => [i, category_labels(i)]);
     }
     else {
-      labels = category_labels.slice(0);
+      labels = category_labels.slice(0).map((label, i) => [i, label]);
     }
 
-    labels.filter(x => !!x).forEach((lbl, i) => {
-      const x = axis_frame.l + i * h_increment;
-      draw.text(c, lbl, x, y, o.labels_x_color, font, 'center', 'middle');
+    labels.filter(x => !!x[1]).forEach(item => {
+      const i = item[0];
+      if ((i - o.labels_x_every_offset)%o.labels_x_every === 0) {
+        const label = item[1];
+        const x = axis_frame.l + i * h_increment;
+        draw.text(c, label, x, y, o.labels_x_color, font, 'center', 'middle');
+      }
     });
   }
 
