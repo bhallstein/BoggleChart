@@ -288,16 +288,6 @@ function line_chart(el_canvas, data, options, category_labels) {
   }
 
 
-  function draw_frame() {
-    c.clearRect(0, 0, g.w, g.h);
-
-    line_chart.draw_gridlines(c, g, axis_frame, o, data);
-    line_chart.draw_axes(c, g, axis_frame, o);
-    line_chart.draw_labels_y(c, g, axis_frame, o);
-    draw_labels_x();
-  }
-
-
   function draw_all() {
     g.regen();
     o = helpers.get_opts(default_opts, options, g);
@@ -305,8 +295,13 @@ function line_chart(el_canvas, data, options, category_labels) {
 
     el_canvas.dispatchEvent(new CustomEvent('force_resize'));
 
-    draw_frame();
-    data.forEach(line => draw_series_line(line));
+    c.clearRect(0, 0, g.w, g.h);
+
+    line_chart.draw_gridlines(c, g, axis_frame, o, data);
+    line_chart.draw_axes(c, g, axis_frame, o);
+    line_chart.draw_labels_y(c, g, axis_frame, o);
+    draw_labels_x();
+    data.forEach(draw_series_line);
     draw_hover();
   }
 
@@ -406,9 +401,13 @@ line_chart.top_section_height = function(o, g) {
   return (o.labels_y && o.labels_y_max) ? o.labels_y_fontsize : g.pr * 2;
 };
 
-line_chart.set_y_label_font = function(c, g, o) {
+line_chart.get_y_label_font = function(c, g, o) {
   const fontsize = g.pr * Math.min(o.labels_y_fontsize, 17);
-  c.font = '200 ' + fontsize + 'px Roboto';
+  return `400 ${g.pr * fontsize}px Roboto`;
+};
+
+line_chart.set_y_label_font = function(c, g, o) {
+  c.font = line_chart.get_y_label_font(c, g, o);
   c.textBaseline = 'middle';
   c.textAlign = 'end';
 };
@@ -441,33 +440,46 @@ line_chart.draw_axes = function(c, g, axis_frame, o) {
 };
 
 
+function dash_style(d, g) {
+  if (d.constructor === Array) {
+    return d.map(i => i * g.pr);
+  }
+  if (d === 'dashed') {
+    return [ 2 * g.pr, 5 * g.pr ];
+  }
+  return [ ];
+}
+
+
 line_chart.draw_gridlines = function(c, g, axis_frame, o, data) {
   const m = (x) => g.pr * x;
 
-  function draw_gridlines_y(x_left, x_right, dashed) {
+  function draw_gridlines_y(x_left, x_right, dash) {
     const h         = g.h - axis_frame.t - axis_frame.b;
     const increment = o.step * h / (o.max - o.min);
     const max       = o.top_x_axis ? o.max - 1 : o.max;
+    const d         = dash_style(dash, g);
 
     let y = g.h - axis_frame.b;
     for (let i = o.min + o.step; i <= max; i += o.step) {
       y -= increment;
-      draw.line(c, x_left, y, x_right, y, o.gridlines_y_color, o.gridlines_y_width, null, dashed ? [ m(2), m(5) ] : null);
+      draw.line(c, x_left, y, x_right, y, o.gridlines_y_color, o.gridlines_y_width, null, d);
     }
   }
 
-  function draw_gridlines_x(y_btm, y_top, dashed) {
+  function draw_gridlines_x(y_btm, y_top, dash) {
     const w         = g.w - axis_frame.l - axis_frame.r;
     const increment = w / (data[0].data.length - 1);
     const min       = o.y_axis && !o.x_axis_extend_left ? 1 : 0;
     const max       = o.right_y_axis ? 2 : 1;
+    const d         = dash_style(dash, g);
 
     for (let i = min; i <= data[0].data.length - max; ++i) {
       if (o.gridlines_x_divisor && i%o.gridlines_x_divisor !== 0) {
         continue;
       }
       const x = axis_frame.l + increment * i;
-      draw.line(c, x, y_btm, x, y_top, o.gridlines_x_color, o.gridlines_x_width, null, dashed ? [ m(2), m(5) ] : null);
+      draw.line(c, x, y_btm, x, y_top, o.gridlines_x_color, o.gridlines_x_width, null, d);
     }
   }
 
@@ -476,7 +488,7 @@ line_chart.draw_gridlines = function(c, g, axis_frame, o, data) {
       draw_gridlines_y(axis_frame.l - m(6), axis_frame.l, false);
     }
     if (o.gridlines_y) {
-      draw_gridlines_y(g.w - axis_frame.r, axis_frame.l, o.gridlines_y_style === 'dashed');
+      draw_gridlines_y(g.w - axis_frame.r, axis_frame.l, o.gridlines_y_style);
     }
   }
 
@@ -485,7 +497,7 @@ line_chart.draw_gridlines = function(c, g, axis_frame, o, data) {
       draw_gridlines_x(g.h - axis_frame.b + m(6), g.h - axis_frame.b, false);
     }
     if (o.gridlines_x) {
-      draw_gridlines_x(g.h - axis_frame.b, axis_frame.t, o.gridlines_x_style === 'dashed');
+      draw_gridlines_x(g.h - axis_frame.b, axis_frame.t, o.gridlines_x_style);
     }
   }
 };
@@ -500,21 +512,17 @@ line_chart.draw_labels_y = function(c, g, axis_frame, o) {
   const increment = o.step * h / (o.max - o.min);
   const x         = axis_frame.l - o.labels_y_padding;
 
-  line_chart.set_y_label_font(c, g, o);
-  c.textBaseline = 'middle';
-  c.textAlign    = 'end';
-  c.fillStyle    = o.labels_y_color;
+  const font = line_chart.get_y_label_font(c, g, o);
 
   const min = o.labels_y_origin ? o.min : o.min + o.step;
   const max = o.labels_y_max ? o.max : o.max - o.step;
 
   for (let i = min; i <= max; i += o.step) {
-    const txt = i.toString() + o.labels_y_unit;
-
     const y_rel = (i - o.min) / (o.max - o.min);
     const y = g.h - axis_frame.b - h + (1 - y_rel) * h;
 
-    c.fillText(txt, x, y);
+    const txt = i.toString() + o.labels_y_unit;
+    draw.text(c, txt, x, y, o.labels_y_color, font, 'end', 'middle');
   }
 };
 
