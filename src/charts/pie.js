@@ -102,7 +102,6 @@ function pie_chart(el_canvas, data, options, click_callback) {
     return result === -1 ? null : result;
   }
 
-
   function select_item(i) {
     if (i === state.active_item) {
       i = null;

@@ -22,6 +22,11 @@ const default_opts = {
   y_axis_width: 1,
   y_axis_color: 'black',
 
+  y_axis_name: false,         // false or string
+  y_axis_name_fontsize: 12,
+  y_axis_name_color: 'black',
+  y_axis_name_padding: 20,
+
   right_y_axis:       false,
   right_y_axis_width: 1,
   right_y_axis_color: 'black',
@@ -46,14 +51,14 @@ const default_opts = {
   gridlines_x_ticks:   false,   //    is true - they're drawn separately
   gridlines_x_color:   'black',
   gridlines_x_width:   0.75,
-  gridlines_x_style:   'solid',
+  gridlines_x_style:   'solid',  // 'solid', 'dashed', or [ Number, Number, ... ]
   gridlines_x_divisor: null,
 
-  gridlines_y:       false,     // NB drawn separately as with gridlines_x
-  gridlines_y_ticks: false,     //
+  gridlines_y:       false,
+  gridlines_y_ticks: false,     // NB drawn separately as with gridlines_x
   gridlines_y_color: 'black',
   gridlines_y_width: 0.75,
-  gridlines_y_style: 'solid',
+  gridlines_y_style: 'solid',   // 'solid', 'dashed', or [ Number, Number, ... ]
 
   interactions:                 false,
   hover_dropline_width:         1,
@@ -111,7 +116,6 @@ function line_chart(el_canvas, data, options, category_labels) {
 
   function m(x) { return g.pr * x; }
 
-  // Cache pixel ratio, canvas dimensions for convenience
   const g = {
     regen() {
       g.pr = el_canvas.pixel_ratio;
@@ -122,10 +126,15 @@ function line_chart(el_canvas, data, options, category_labels) {
 
   const axis_frame = {
     regen() {
-      axis_frame.l = line_chart.max_label_width(c, g, o) + o.labels_y_padding + line_chart.label_padding_left(o);
+      axis_frame.l =
+        line_chart.max_label_width(c, g, o) +
+        o.labels_y_padding +
+        line_chart.label_padding_left(o) +
+        line_chart.y_axis_name_width(o, g);
       axis_frame.r = m(4);
       axis_frame.b = line_chart.btm_section_height(o, g);
       axis_frame.t = line_chart.top_section_height(o, g);
+      axis_frame.h = g.h - axis_frame.t - axis_frame.b;
     },
   };
 
@@ -142,12 +151,10 @@ function line_chart(el_canvas, data, options, category_labels) {
 
     let labels;
     if (typeof category_labels === 'function') {
-      labels = data[0].data
-        .slice(0)
-        .map((_, i) => [i, category_labels(i)]);
+      labels = data[0].data.map((_, i) => [i, category_labels(i)]);
     }
     else {
-      labels = (category_labels || [ ]).slice(0).map((label, i) => [i, label]);
+      labels = (category_labels || [ ]).map((label, i) => [i, label]);
     }
 
     labels.filter(x => !!x[1]).forEach(item => {
@@ -300,6 +307,7 @@ function line_chart(el_canvas, data, options, category_labels) {
     line_chart.draw_gridlines(c, g, axis_frame, o, data);
     line_chart.draw_axes(c, g, axis_frame, o);
     line_chart.draw_labels_y(c, g, axis_frame, o);
+    line_chart.draw_y_axis_name(c, g, axis_frame, o);
     draw_labels_x();
     data.forEach(draw_series_line);
     draw_hover();
@@ -401,9 +409,13 @@ line_chart.top_section_height = function(o, g) {
   return (o.labels_y && o.labels_y_max) ? o.labels_y_fontsize : g.pr * 2;
 };
 
+line_chart.y_axis_name_width = function(o, g) {
+  return o.y_axis_name ? g.pr * (1.5 * o.y_axis_name_fontsize + o.y_axis_name_padding) : 0;
+};
+
 line_chart.get_y_label_font = function(c, g, o) {
   const fontsize = g.pr * Math.min(o.labels_y_fontsize, 17);
-  return `400 ${g.pr * fontsize}px Roboto`;
+  return `400 ${fontsize}px Roboto`;
 };
 
 line_chart.set_y_label_font = function(c, g, o) {
@@ -511,8 +523,7 @@ line_chart.draw_labels_y = function(c, g, axis_frame, o) {
   const h         = g.h - axis_frame.t - axis_frame.b;
   const increment = o.step * h / (o.max - o.min);
   const x         = axis_frame.l - o.labels_y_padding;
-
-  const font = line_chart.get_y_label_font(c, g, o);
+  const font      = line_chart.get_y_label_font(c, g, o);
 
   const min = o.labels_y_origin ? o.min : o.min + o.step;
   const max = o.labels_y_max ? o.max : o.max - o.step;
@@ -524,6 +535,25 @@ line_chart.draw_labels_y = function(c, g, axis_frame, o) {
     const txt = i.toString() + o.labels_y_unit;
     draw.text(c, txt, x, y, o.labels_y_color, font, 'end', 'middle');
   }
+};
+
+
+line_chart.draw_y_axis_name = function(c, g, axis_frame, o) {
+  if (!o.y_axis_name) {
+    return;
+  }
+
+  const fs   = g.pr * o.y_axis_name_fontsize;
+  const x    = 1.25 * fs;
+  const y    = g.h - axis_frame.b - axis_frame.h/2;
+  const font = `400 ${fs}px Roboto`;
+
+  c.save();
+  c.translate(x, y);
+  c.rotate(-Math.PI/2);
+
+  draw.text(c, o.y_axis_name, 0, 0, o.y_axis_name_color, font, 'center', 'middle');
+  c.restore();
 };
 
 

@@ -58,8 +58,8 @@ function text(context, text, x, y, color, font, h_align, v_align, measure) {
 
   context.fillStyle    = color;
   context.font         = font;
-  context.textBaseline = v_align || 'bottom';
   context.textAlign    = h_align || 'left';
+  context.textBaseline = v_align || 'bottom';
 
   if (measure) {
     return context.measureText(text);
