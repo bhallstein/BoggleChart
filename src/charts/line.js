@@ -22,10 +22,10 @@ const default_opts = {
   y_axis_width: 1,
   y_axis_color: 'black',
 
-  y_axis_name: false,         // false or string
+  y_axis_name:          false,    // false or string
   y_axis_name_fontsize: 12,
-  y_axis_name_color: 'black',
-  y_axis_name_padding: 20,
+  y_axis_name_color:    'black',
+  y_axis_name_padding:  20,
 
   right_y_axis:       false,
   right_y_axis_width: 1,
@@ -59,6 +59,10 @@ const default_opts = {
   gridlines_y_color: 'black',
   gridlines_y_width: 0.75,
   gridlines_y_style: 'solid',   // 'solid', 'dashed', or [ Number, Number, ... ]
+
+  legend:          false,
+  legend_fontsize: 12,
+  legend_color:    'black',
 
   interactions:                 false,
   hover_dropline_width:         1,
@@ -131,9 +135,11 @@ function line_chart(el_canvas, data, options, category_labels) {
         o.labels_y_padding +
         line_chart.label_padding_left(o) +
         line_chart.y_axis_name_width(o, g);
-      axis_frame.r = m(4);
+      axis_frame.r = m(2);
+      axis_frame.w = g.w - axis_frame.l - axis_frame.r;
+
       axis_frame.b = line_chart.btm_section_height(o, g);
-      axis_frame.t = line_chart.top_section_height(o, g);
+      axis_frame.t = line_chart.top_section_height(c, g, axis_frame, o, data);
       axis_frame.h = g.h - axis_frame.t - axis_frame.b;
     },
   };
@@ -311,6 +317,7 @@ function line_chart(el_canvas, data, options, category_labels) {
     draw_labels_x();
     data.forEach(draw_series_line);
     draw_hover();
+    line_chart.draw_legend(c, g, axis_frame, o, data);
   }
 
 
@@ -405,8 +412,20 @@ line_chart.btm_section_height = function(o, g) {
   return g.pr * (o.labels_x ? o.labels_x_fontsize * 2 : 2);
 };
 
-line_chart.top_section_height = function(o, g) {
-  return (o.labels_y && o.labels_y_max) ? o.labels_y_fontsize : g.pr * 2;
+line_chart.top_section_height = function(c, g, axis_frame, o, data) {
+  let h = g.pr * 2;
+
+  const has_top_label = o.labels_y && o.labels_y_max;
+  const has_top_legend = o.legend;
+
+  if (has_top_label) {
+    h += o.labels_y_fontsize * g.pr;
+  }
+  if (has_top_legend) {
+    h += line_chart.draw_legend(c, g, axis_frame, o, data, true).height;
+  }
+
+  return h;
 };
 
 line_chart.y_axis_name_width = function(o, g) {
@@ -554,6 +573,75 @@ line_chart.draw_y_axis_name = function(c, g, axis_frame, o) {
 
   draw.text(c, o.y_axis_name, 0, 0, o.y_axis_name_color, font, 'center', 'middle');
   c.restore();
+};
+
+
+line_chart.draw_legend = function(c, g, axis_frame, o, data, measure_rows) {
+  if (!o.legend) {
+    return;
+  }
+
+  const w = axis_frame.w;
+  const font = `400 ${g.pr * o.legend_fontsize}px Roboto`;
+  const half_fs = g.pr * o.legend_fontsize / 2;
+  const legend_item_spacing = g.pr * o.legend_fontsize * 1.9;
+  const legend_icon_size    = g.pr * o.legend_fontsize * 0.6;
+  const legend_icon_spacing = g.pr * o.legend_fontsize * 0.9;
+  const legend_v_spacing    = g.pr * o.legend_fontsize * 1.6;
+
+  function item_width(item) {
+    return draw.text(c, item.title, g.w/2, g.h/2, o.legend_color, font, 0, 0, true).width + legend_icon_size + legend_icon_spacing;
+  }
+
+  data.forEach(item => item.__width = item_width(item));
+
+
+  // Get legend item positions - flow them into the available space, right-aligned
+  const rows = data.reduce((rows, item) => {
+    const cur_line = rows[rows.length - 1];
+    const cur_line_width =
+      cur_line.reduce((carry, item) => (carry + item.__width + legend_item_spacing), 0) -
+      (cur_line.length ? legend_item_spacing : 0);
+
+    const would_overflow = cur_line_width + legend_item_spacing + item.__width >= w;
+
+    if (would_overflow) {
+      rows.push([ item ]);
+    }
+    else {
+      cur_line.push(item);
+    }
+
+    return rows;
+  }, [ [] ]);
+
+  if (measure_rows) {
+    return {
+      height: rows.length * legend_v_spacing,
+    };
+  }
+
+  rows.forEach((row, i_row) => {
+    let x_offset = 0;
+    const y = i_row * legend_v_spacing;
+    const rrow = row.slice(0).reverse();
+
+    rrow.forEach((item, i) => {
+      const x = g.w - axis_frame.r - x_offset - item.__width;
+      item.__legend_x = x;
+      item.__legend_y = y;
+
+      x_offset += item.__width + legend_item_spacing;
+    });
+  });
+
+  data.forEach(item => {
+    const x = item.__legend_x;
+    const y = item.__legend_y;
+
+    draw.circle(c, x + half_fs, y + half_fs, legend_icon_size/2, item.color);
+    draw.text(c, item.title, x + legend_icon_spacing + legend_icon_size, y, o.legend_color, font, 'left', 'top');
+  });
 };
 
 
