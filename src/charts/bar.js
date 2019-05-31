@@ -90,7 +90,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
       axis_frame.l = line_chart.max_label_width(c, g, o) + o.labels_y_padding + line_chart.label_padding_left(o);
       axis_frame.r = m(4);
       axis_frame.b = line_chart.btm_section_height(o, g);
-      axis_frame.t = line_chart.top_section_height(o, g);
+      axis_frame.t = line_chart.top_section_height(c, g, axis_frame, o, data);
     },
   };
 

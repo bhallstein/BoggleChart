@@ -1,7 +1,7 @@
 {
   "name": "bogglechart",
   "description": "Charts for lemurs",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "author": "Ben Hall <ben@ben.am> (https://ben.am/)",
   "license": {
     "type": "MIT",
@@ -28,16 +28,16 @@
     "prepublishOnly": "npm run build-for-publish"
   },
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.4.0",
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
-    "@babel/polyfill": "^7.4.0",
-    "@babel/preset-env": "^7.4.2",
+    "@babel/polyfill": "^7.4.4",
+    "@babel/preset-env": "^7.4.5",
     "@babel/preset-react": "^7.0.0",
-    "babel-loader": "^8.0.5",
+    "babel-loader": "^8.0.6",
     "html-webpack-plugin": "^3.2.0",
-    "webpack": "^4.29.6",
-    "webpack-cli": "^3.3.0",
-    "webpack-dev-server": "^3.2.1"
+    "webpack": "^4.32.2",
+    "webpack-cli": "^3.3.2",
+    "webpack-dev-server": "^3.4.1"
   }
 }
