@@ -15,10 +15,10 @@ const default_opts = {
   axis_highlight_color: 'black',
   axis_highlight_style: 'normal',  // or 'dashed'
 
-  label:              false,
+  labels:             false,
   label_every:        1,
   label_every_offset: 0,
-  label_position:     'line',  // or 'segment'
+  label_position:     'axis',  // or 'segment'
   label_font_size:    14,
   label_font_weight:  400,
   label_font:         '"Helvetica Neue", Helvetica',
@@ -83,7 +83,7 @@ function radar_chart(el_canvas, data, options) {
 
       const p = {
         x: g.center.x + vx * max_radius(),
-        y: g.center.y + vy * max_radius(),
+        y: g.center.y - vy * max_radius(),
       };
 
       cb(p, slice_angle, item, i);
@@ -188,18 +188,18 @@ function radar_chart(el_canvas, data, options) {
   }
 
 
+  function _draw() {
+    animQueue.reset();
+    animQueue.add(animtask__animate_in());
+    animQueue.start();
+  }
+
+
   return {
-    draw: function() {
-      animQueue.reset();
-      animQueue.add(animtask__animate_in());
-      animQueue.start();
-    },
-    tearDown: function() {
+    draw: _draw,
+    tear_down: function() {
       unbind();
       animQueue.reset();
-      animQueue = null;
-      el_canvas = null;
-      c = null;
     },
   };
 }

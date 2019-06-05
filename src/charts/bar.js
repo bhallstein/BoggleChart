@@ -283,7 +283,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
       animQueue.add(animtask__highlight(ind));
       animQueue.start();
     },
-    tearDown() {
+    tear_down() {
       unbind();
       animQueue.reset();
       animQueue = null;

@@ -5,8 +5,8 @@ import draw from '../helpers/draw';
 
 
 const default_opts = {
-  min: 0,
-  max: 100,
+  min:  0,
+  max:  100,
   step: (g, opts) => (opts.max - opts.min) / 5,
 
   x_axis:             true,
@@ -353,7 +353,7 @@ function line_chart(el_canvas, data, options, category_labels) {
   }
 
 
-  function do_draw() {
+  function _draw() {
     animQueue.reset();
 
     data.forEach(line => {
@@ -373,17 +373,10 @@ function line_chart(el_canvas, data, options, category_labels) {
 
 
   return {
-    draw: do_draw,
-    drawFrame() {
-      el_canvas.dispatchEvent(new CustomEvent('force_resize'));
-      draw_frame();
-    },
-    tearDown() {  // Give the garbage collector a fighting chance
+    draw: _draw,
+    tear_down() {  // Give the garbage collector a fighting chance
       unbind();
       animQueue.reset();
-      animQueue = null;
-      el_canvas = null;
-      c = null;
     },
   };
 }

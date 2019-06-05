@@ -37,23 +37,17 @@
           { title: '12', color: '#7b7b7b', value: 3.6 },
         ],
         max: 6,
-        max_line: 12,
-        step: 2,
-        radar_max: 10,
-        radar_labelPos: 'axis',
-        radar_labelEvery: 3,
-        radar_axisNHighlight:  3,
       },
       {
         exterior_padding: 0.03,
 
         labels: true,
-        label_position: 'line',
+        label_position: 'axis',
         label_every: 2,
         label_font_size: 11,
 
-        // axis_style: 'dashed',
-      }
+        axis_color: 'rgba(0,0,0,0.62)',
+      },
     );
     radar_chart.draw();
   </script>
