@@ -67,6 +67,7 @@ const default_opts = {
   interactions:                 false,
   hover_dropline_width:         1,
   hover_dropline_color:         'black',
+  hover_overlay_color:          'rgba(0,0,255,0.1)',
   hover_value_background_color: '#ddd',
   hover_value_foreground_color: 'black',
   hover_value_draw_callback:    null,
@@ -261,7 +262,7 @@ function line_chart(el_canvas, data, options, category_labels) {
     const rw = x_ind * w / (d.length - 1);
     const rh = g.h - axis_frame.t - axis_frame.b;
     c.beginPath();
-    c.fillStyle = 'rgba(0,0,255,0.1)';
+    c.fillStyle = o.hover_overlay_color;
     c.rect(rx, ry, rw, rh);
     c.fill();
 
