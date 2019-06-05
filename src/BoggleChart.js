@@ -5,6 +5,7 @@ import radar_chart from './charts/radar';
 import roadmap from './visualizations/roadmap';
 
 import helpers from './helpers/helpers';
+import draw from './helpers/draw';
 import math from './helpers/math';
 
 
@@ -63,6 +64,7 @@ function create_canvas(el_container) {
 export {
   create_canvas,
   helpers,
+  draw,
   math,
 
   bar_chart,

@@ -70,6 +70,18 @@ function text(context, text, x, y, color, font, h_align, v_align, measure) {
 }
 
 
+function rect(context, x, y, w, h, color) {
+  context.beginPath();
+  context.moveTo(x, y);
+
+  context.rect(x, y, w, h);
+  context.fillStyle = color;
+  context.fill();
+
+  context.closePath();
+}
+
+
 function round_rect(context, x, y, w, h, radius, color) {
   context.beginPath();
   context.moveTo(x + radius, y);
@@ -197,6 +209,7 @@ export default {
   line,
   circle,
   text,
+  rect,
   round_rect,
   popup_box,
 };
