@@ -70,6 +70,10 @@ const default_opts = {
   hover_value_background_color: '#ddd',
   hover_value_foreground_color: 'black',
   hover_value_draw_callback:    null,
+
+  __function_opts_not_to_process_as_functions: [
+    'hover_value_draw_callback',
+  ],
 };
 
 
@@ -271,7 +275,7 @@ function line_chart(el_canvas, data, options, category_labels) {
     const vx = x + o.hover_dropline_width/2;
     const vy = y2;
     if (typeof o.hover_value_draw_callback === 'function') {
-      o.hoverValueDraw_callback(c, x_ind, vx, vy, g.w, g.h, g.pr);
+      o.hover_value_draw_callback(c, x_ind, vx, vy, g.w, g.h, g.pr);
     }
     else {
       const fontsize = Math.min(0.08 * g.h, m(15));

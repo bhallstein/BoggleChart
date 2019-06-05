@@ -6,9 +6,19 @@ function get_opts(default_opts, options, g) {
   const opts = Object.assign({}, default_opts, options);
 
   // Process function options
-  Object.keys(opts)
+  // - Certain options are passed as functions, but aren't intended to be handled like this:
+  //       step: (g, opts) => (opts.max - opts.min) / 5,
+  //   but to be called later.
+  //
+  // - In this case, the graph type must specify these options by adding them to an array
+  //   named default_opts.__function_opts_not_to_process_as_functions - see line_chart.default_opts
+
+  const excluded_functions = default_opts.__function_opts_not_to_process_as_functions || [ ];
+  const functions_to_process = Object.keys(opts)
     .filter(k => typeof opts[k] === 'function')
-    .forEach(k => opts[k] = opts[k](g, opts));
+    .filter(k => excluded_functions.indexOf(k) === -1);
+
+  functions_to_process.forEach(k => opts[k] = opts[k](g, opts));
 
   return opts;
 }
