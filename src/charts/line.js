@@ -185,7 +185,7 @@ function line_chart(el_canvas, data, options, category_labels) {
 
 
   function draw_series_line(line) {
-    const line_width = m(line.lineWidth || 1.75);
+    const line_width = m(line.width || 1.75);
     c.lineWidth = line_width;
 
     const d         = line.data;
@@ -261,10 +261,7 @@ function line_chart(el_canvas, data, options, category_labels) {
     const ry = axis_frame.t;
     const rw = x_ind * w / (d.length - 1);
     const rh = g.h - axis_frame.t - axis_frame.b;
-    c.beginPath();
-    c.fillStyle = o.hover_overlay_color;
-    c.rect(rx, ry, rw, rh);
-    c.fill();
+    draw.rect(c, rx, ry, rw, rh, o.hover_overlay_color);
 
     // Vertical drop-line
     const x  = axis_frame.l + rw;
