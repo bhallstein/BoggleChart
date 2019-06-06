@@ -148,7 +148,7 @@ function radar_chart(el_canvas, data, options) {
     c.translate(-g.center.x, -g.center.y);
 
     const x = g.center.x;
-    const y = g.center.x - max_radius() - o.label_font_size;
+    const y = g.center.y - max_radius() - o.label_font_size;
 
     draw.text(c, item.title, x, y, o.label_color, font, 'center', 'middle');
 
