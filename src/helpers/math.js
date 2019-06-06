@@ -164,6 +164,11 @@ function format_number(x, n_decimals) {
 }
 
 
+function sum(arr, summation_property) {
+  return arr.reduce((accum, x, i) => accum + x[summation_property], 0);
+}
+
+
 function delayed_time_series(n_items, item_length, delay, t) {
   // - Return an array of item-relative times for a uniformly-delayed set of items
   //   within an overall time period.
@@ -191,6 +196,7 @@ export default {
   quadrant,
   angle_from_vertical,
   format_number,
+  sum,
   delayed_time_series,
 };
 

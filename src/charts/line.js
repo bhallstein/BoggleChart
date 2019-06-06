@@ -47,18 +47,18 @@ const default_opts = {
   labels_y_max:      true,
   labels_y_unit:     '',
 
-  gridlines_x:         false,   // NB gridlines_x can be false while _ticks
-  gridlines_x_ticks:   false,   //    is true - they're drawn separately
+  gridlines_x:         false,    // NB gridlines_x can be false while _ticks
+  gridlines_x_ticks:   false,    //    is true - they're drawn separately
   gridlines_x_color:   'black',
   gridlines_x_width:   0.75,
   gridlines_x_style:   'solid',  // 'solid', 'dashed', or [ Number, Number, ... ]
   gridlines_x_divisor: null,
 
   gridlines_y:       false,
-  gridlines_y_ticks: false,     // NB drawn separately as with gridlines_x
+  gridlines_y_ticks: false,      // NB drawn separately as with gridlines_x
   gridlines_y_color: 'black',
   gridlines_y_width: 0.75,
-  gridlines_y_style: 'solid',   // 'solid', 'dashed', or [ Number, Number, ... ]
+  gridlines_y_style: 'solid',    // 'solid', 'dashed', or [ Number, Number, ... ]
 
   legend:          false,
   legend_fontsize: 12,

@@ -126,9 +126,10 @@ function pie_chart(el_canvas, data, options, click_callback) {
 
   const g = {
     regen() {
-      g.pr = el_canvas.pixel_ratio;
-      g.w  = el_canvas.width;
-      g.h  = el_canvas.height;
+      g.pr  = el_canvas.pixel_ratio;
+      g.w   = el_canvas.width;
+      g.h   = el_canvas.height;
+      g.min = Math.min(g.w, g.h);
       g.center = {
         x: g.w / 2,
         y: g.h / 2 + 0.5,
@@ -162,11 +163,11 @@ function pie_chart(el_canvas, data, options, click_callback) {
 
 
   function data_total() {
-    return helpers.totalData(data, 'value');
+    return math.sum(data, 'value');
   }
 
   function radius__outer() {
-    return (g.w - 2 * m(o.outer_padding)) / 2;
+    return (g.min - 2 * m(o.outer_padding)) / 2;
   }
 
   function radius__cutout() {

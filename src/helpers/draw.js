@@ -37,8 +37,8 @@ function circle(context, x, y, radius, fill, stroke, stroke_width, start_angle, 
   const start = start_angle === undefined ? 0 : start_angle;
   const end   = end_angle   === undefined ? 2 * Math.PI : end_angle;
 
-  context.beginPath();
   context.moveTo(x, y);
+  context.beginPath();
   context.fillStyle   = fill || 'transparent';
   context.strokeStyle = stroke || 'transparent';
   context.lineWidth   = stroke_width;

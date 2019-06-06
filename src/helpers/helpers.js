@@ -57,11 +57,6 @@ function find(arr, f) {
 }
 
 
-function totalData(arr, summation_property) {
-  return arr.reduce((accum, x, i) => accum + x[summation_property], 0);
-}
-
-
 const months = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -97,7 +92,6 @@ export default {
   get_offset_in_canvas,
   clone,
   find,
-  totalData,
   monthName,
   getJSON,
 };
