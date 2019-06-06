@@ -12,13 +12,12 @@ const default_opts = {
   inner_line_color: 'black',
 
   cutout_radius: 0,
+  outer_padding: 4,
 
   label_color: 'black',
   label_fontsize: 14,
   label_font: '"Helvetica Neue", Helvetica',
   label_weight: 600,
-
-  outer_padding: 4,
 
   interactions: false,
 };
@@ -355,6 +354,11 @@ function pie_chart(el_canvas, data, options, click_callback) {
     draw__animate_in() {
       animQueue.add(animtask__animate_in());
       animQueue.start();
+    },
+
+    tear_down() {
+      unbind();
+      animQueue.reset();
     },
 
     set_label(txt) {
