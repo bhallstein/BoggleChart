@@ -39,13 +39,14 @@ const default_opts = {
   labels_x_every_offset: 0,
   labels_x_origin:       true,
 
-  labels_y:          true,
-  labels_y_padding:  12,
-  labels_y_fontsize: 12,
-  labels_y_color:    'black',
-  labels_y_origin:   true,
-  labels_y_max:      true,
-  labels_y_unit:     '',
+  labels_y:           true,
+  labels_y_padding_l: 10,
+  labels_y_padding_r: 10,
+  labels_y_fontsize:  12,
+  labels_y_color:     'black',
+  labels_y_origin:    true,
+  labels_y_max:       true,
+  labels_y_unit:      '',
 
   gridlines_x:         false,    // NB gridlines_x can be false while _ticks
   gridlines_x_ticks:   false,    //    is true - they're drawn separately
@@ -72,7 +73,7 @@ const default_opts = {
   hover_value_foreground_color: 'black',
   hover_value_draw_callback:    null,
 
-  __function_opts_not_to_process_as_functions: [
+  __opts_not_to_process_as_functions: [
     'hover_value_draw_callback',
   ],
 };
@@ -137,8 +138,8 @@ function line_chart(el_canvas, data, options, category_labels) {
     regen() {
       axis_frame.l =
         line_chart.max_label_width(c, g, o) +
-        o.labels_y_padding +
-        line_chart.label_padding_left(o) +
+        m(o.labels_y_padding_l) +
+        m(o.labels_y_padding_r) +
         line_chart.y_axis_name_width(o, g);
       axis_frame.r = m(2);
       axis_frame.w = g.w - axis_frame.l - axis_frame.r;
@@ -382,7 +383,7 @@ function line_chart(el_canvas, data, options, category_labels) {
 }
 
 
-// Functions for sharing with bar chart
+// Functions shared with bar.js
 // ----------------------------------------------------------
 
 // helpers
@@ -397,10 +398,6 @@ line_chart.max_label_width = function(c, g, o) {
   }
 
   return max;
-};
-
-line_chart.label_padding_left = function(o) {
-  return o.labels_y_padding * 0.5;
 };
 
 line_chart.btm_section_height = function(o, g) {
@@ -536,7 +533,7 @@ line_chart.draw_labels_y = function(c, g, axis_frame, o) {
 
   const h         = g.h - axis_frame.t - axis_frame.b;
   const increment = o.step * h / (o.max - o.min);
-  const x         = axis_frame.l - o.labels_y_padding;
+  const x         = axis_frame.l - o.labels_y_padding_r;
   const font      = line_chart.get_y_label_font(c, g, o);
 
   const min = o.labels_y_origin ? o.min : o.min + o.step;

@@ -27,18 +27,19 @@ const default_opts = {
   right_y_axis_width: 1,
   right_y_axis_color: 'black',
 
+  labels_x:          true,
+  labels_x_padding:  (g) => 0.02 * g.h,
+  labels_x_fontsize: (g) => 0.04 * g.h,
+  labels_x_color:    'black',
+
   labels_y:             true,
-  labels_y_padding:     10,
+  labels_y_padding_l:   10,
+  labels_y_padding_r:   10,
   labels_y_fontsize:    (g) => 0.035 * g.h,
   labels_y_color:       'black',
   labels_y_labelOrigin: true,
   labels_y_labelMax:    true,
   labels_y_unit:        '',
-
-  labels_x:          true,
-  labels_x_padding:  (g) => 0.02 * g.h,
-  labels_x_fontsize: (g) => 0.04 * g.h,
-  labels_x_color:    'black',
 
   gridlines_y:       false,     // NB gridlines can be false while _ticks
   gridlines_y_ticks: false,     //    is true
@@ -87,7 +88,9 @@ function bar_chart(el_canvas, data, options, category_labels) {
 
   const axis_frame = {
     regen() {
-      axis_frame.l = line_chart.max_label_width(c, g, o) + o.labels_y_padding + line_chart.label_padding_left(o);
+      axis_frame.l = line_chart.max_label_width(c, g, o) +
+        m(o.labels_y_padding_l) +
+        m(o.labels_y_padding_r);
       axis_frame.r = m(4);
       axis_frame.b = line_chart.btm_section_height(o, g);
       axis_frame.t = line_chart.top_section_height(c, g, axis_frame, o, data);
@@ -147,7 +150,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
   }
 
   function draw_labels_x() {
-    if (!options.labels_x) {
+    if (!o.labels_x) {
       return;
     }
 
