@@ -477,9 +477,5 @@ function roadmap(el_canvas, streams, options) {
 }
 
 
-// Date helpers
-// ----------------------------------------------------------
-
-
 export default roadmap;
 

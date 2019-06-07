@@ -97,12 +97,7 @@ function friendly_date_string(d) {
 
 function quarter_name(d) {
   const month = d.getMonth();
-  return {
-    '0' : '1',
-    '3' : '2',
-    '6' : '3',
-    '9' : '4',
-  }[month] || '√-1';
+  return Math.floor(month / 3) + 1;
 }
 
 
