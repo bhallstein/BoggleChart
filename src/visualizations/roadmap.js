@@ -404,8 +404,8 @@ function roadmap(el_canvas, streams, options) {
     o.n_months      = date.full_months_between(o.start_aligned, o.end_aligned);
 
     c.clearRect(0, 0, g.w, g.h);
-    draw_header_section();
     draw_year_progress_indicator();
+    draw_header_section();
     draw_gridlines();
     draw_streams();
     draw_selected_deliverable();
