@@ -196,7 +196,7 @@ function pie_chart(el_canvas, data, options, click_callback) {
     const stroke_width = radius__outer() - radius__cutout();
     const r = radius__cutout() + stroke_width / 2;
 
-    const draw_args = [ c, g.center.x, g.center.y, r, null, s.color, stroke_width, start_angle, end_angle ];
+    const draw_args = [ c, g.center.x, g.center.y, r, null, s.color, stroke_width, start_angle, end_angle, true];
 
     if (state.active_item !== null && !is_active) {
       const min_alpha = 0.3;
@@ -221,13 +221,13 @@ function pie_chart(el_canvas, data, options, click_callback) {
 
   function draw_inner_line() {
     if (o.inner_line_width && o.cutout_radius) {
-      draw.circle(c, g.center.x, g.center.y, radius__cutout(), null, o.inner_line_color, m(o.inner_line_width));
+      draw.circle(c, g.center.x, g.center.y, radius__cutout(), null, o.inner_line_color, m(o.inner_line_width), 0, null, true);
     }
   }
 
   function draw_outer_line() {
     if (o.outer_line_width) {
-      draw.circle(c, g.center.x, g.center.y, radius__outer(), null, o.outer_line_color, m(o.outer_line_width));
+      draw.circle(c, g.center.x, g.center.y, radius__outer(), null, o.outer_line_color, m(o.outer_line_width), 0, null, true);
     }
   }
 

@@ -33,12 +33,17 @@ function line(context, from_x, from_y, to_x, to_y, color, width, line_cap, dash,
 }
 
 
-function circle(context, x, y, radius, fill, stroke, stroke_width, start_angle, end_angle) {
-  const start = start_angle === undefined ? 0 : start_angle;
-  const end   = end_angle   === undefined ? 2 * Math.PI : end_angle;
+function circle(context, x, y, radius, fill, stroke, stroke_width, start_angle, end_angle, move_before_path) {
+  const start = (start_angle === undefined || start_angle === null) ? 0 : start_angle;
+  const end   = (end_angle   === undefined || end_angle   === null) ? 2 * Math.PI : end_angle;
 
-  context.moveTo(x, y);
+  if (move_before_path) {
+    context.moveTo(x, y);
+  }
   context.beginPath();
+  if (!move_before_path) {
+    context.moveTo(x, y);
+  }
   context.fillStyle   = fill || 'transparent';
   context.strokeStyle = stroke || 'transparent';
   context.lineWidth   = stroke_width;
