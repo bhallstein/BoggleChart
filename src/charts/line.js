@@ -533,7 +533,7 @@ line_chart.draw_labels_y = function(c, g, axis_frame, o) {
 
   const h         = g.h - axis_frame.t - axis_frame.b;
   const increment = o.step * h / (o.max - o.min);
-  const x         = axis_frame.l - o.labels_y_padding_r;
+  const x         = axis_frame.l - o.labels_y_padding_r * g.pr;
   const font      = line_chart.get_y_label_font(c, g, o);
 
   const min = o.labels_y_origin ? o.min : o.min + o.step;
