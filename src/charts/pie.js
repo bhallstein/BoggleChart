@@ -20,6 +20,11 @@ const default_opts = {
   label_weight: 600,
 
   interactions: false,
+  click_callback: null,
+
+  __opts_not_to_process_as_functions: [
+    'click_callback',
+  ],
 };
 
 
@@ -28,7 +33,7 @@ const segment_defaults = {
 };
 
 
-function pie_chart(el_canvas, data, options, click_callback) {
+function pie_chart(el_canvas, data, options) {
   const c = el_canvas.getContext('2d');
   let o;
 
@@ -112,8 +117,8 @@ function pie_chart(el_canvas, data, options, click_callback) {
     animQueue.add(animtask__show_label(i === null ? null : data[i].title))
     animQueue.start();
 
-    if (click_callback) {
-      click_callback(i !== null ? data[i] : null);
+    if (o.click_callback) {
+      o.click_callback(i !== null ? data[i] : null);
     }
   }
 
@@ -390,7 +395,7 @@ function pie_chart(el_canvas, data, options, click_callback) {
       select_item(i);
 
       if (trigger_click) {
-        click_callback(data[i]);
+        o.click_callback(data[i]);
       }
     },
   };
