@@ -159,6 +159,7 @@ function pie_chart(el_canvas, data, options) {
     active_item:  null,
     active_item_progress: 0,
 
+    title: null,
     label: {
       value: null,
       opacity: 1,
@@ -334,6 +335,10 @@ function pie_chart(el_canvas, data, options) {
       draw_all();
 
       if (progress === 1) {
+        if (state.label.value === null && state.title) {
+          animQueue.add(animtask__show_label(state.title));
+        }
+
         animQueue.finishTask();
       }
     };
@@ -366,17 +371,19 @@ function pie_chart(el_canvas, data, options) {
       animQueue.reset();
     },
 
-    set_label(txt) {
-      if (txt === state.label.value) {
+    set_title(title) {
+      state.title = title;
+
+      if (title === state.label.value) {
         return;
       }
 
       if (!state.label.value) {
-        animQueue.add(animtask__show_label(txt));
+        animQueue.add(animtask__show_label(title));
       }
       else {
         animQueue.add(animtask__hide_label());
-        animQueue.add(animtask__show_label(txt));
+        animQueue.add(animtask__show_label(title));
       }
 
       animQueue.start();
