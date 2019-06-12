@@ -289,9 +289,6 @@ function bar_chart(el_canvas, data, options, category_labels) {
     tear_down() {
       unbind();
       animQueue.reset();
-      animQueue = null;
-      el_canvas = null;
-      c = null;
     },
   };
 }
