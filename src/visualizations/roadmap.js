@@ -14,29 +14,31 @@ const default_opts = {
 
   gridlines:       false,
   gridlines_width: 1,
-  gridlines_color: '#ccc',
+  gridlines_color: '#ddd',
   gridlines_style: 'solid',
   gridlines_minor:       false,
   gridlines_minor_width: 1,
-  gridlines_minor_color: '#ccc',
+  gridlines_minor_color: '#ddd',
   gridlines_minor_style: 'dashed',
 
   header:                 false,
-  header_fontsize:        (g) => Math.min(18, g.h * 0.03),
+  header_fontsize:        g => g.h * 0.024,
   header_font:            '"Helvetica Neue", Helvetica, Arial',
   header_color:           '#a9a9a9',
   header_weight:          600,
-  header_vpadding:        (g) => Math.min(12, g.h * 0.015),
+  header_vpadding:        g => g.h * 0.009,
   header_show_year:       true,
   header_gridlines_color: '#a9a9a9',
-  header_gridlines_width: 2,
+  header_gridlines_width: 1.8,
 
   stream_title_font:     '"Helvetica Neue", Helvetica, Arial',
   stream_title_color:    '#333',
   stream_title_weight:   600,
-  stream_title_fontsize: (g) => Math.min(16, g.h * 0.032),
-  stream_line_width:     (g) => Math.min(10, g.h * 0.015),
-  stream_date_fontsize:  (g) => Math.min(16, g.h * 0.032),
+  stream_title_fontsize: g => g.h * 0.019,
+  stream_line_width:     g => g.h * 0.009 / g.pr,
+  stream_date_fontsize:  g => g.h * 0.012 / g.pr,
+
+  circle_radius: g => g.h * 0.010,
 
   year_progress: false,
   year_progress_color: '#f8f8f8',
@@ -44,11 +46,11 @@ const default_opts = {
   popup_title_font:   '"Helvetica Neue", Helvetica, Arial',
   popup_title_weight: 900,
   popup_title_color:  'black',
-  popup_title_size:   18,
+  popup_title_size:   g => g.h * 0.028,
   popup_date_font:    '"Helvetica Neue", Helvetica, Arial',
   popup_date_weight:  900,
   popup_date_color:   '#a9a9a9',
-  popup_date_size:    18,
+  popup_date_size:    g => g.h * 0.028,
 
   padding_h: 40,
 };
@@ -148,7 +150,7 @@ function roadmap(el_canvas, streams, options) {
 
 
   function header_height() {
-    return o.header ? m(o.header_fontsize) + m(o.header_vpadding * 2) : 0;
+    return o.header ? o.header_fontsize + m(o.header_vpadding * 2) : 0;
   }
 
 
@@ -178,7 +180,7 @@ function roadmap(el_canvas, streams, options) {
       return;
     }
 
-    const font = `${o.header_weight} ${m(o.header_fontsize)}px ${o.header_font}`;
+    const font = `${o.header_weight} ${o.header_fontsize}px ${o.header_font}`;
 
     function divider(x) {
       const y1 = m(o.header_vpadding);
@@ -280,11 +282,13 @@ function roadmap(el_canvas, streams, options) {
         const x2 = o.padding_h + o.w * df_end;
         const x2_actual = (x2 - x1) * math.ease_out_cubic_simple(s.draw_progress) + x1;
 
-        draw.line(c, x1, y, x2_actual, y, s.color, m(o.stream_line_width), 'round', undefined, o.alpha);
+        draw.line(c, x1, y, x2_actual, y, s.color, o.stream_line_width, 'round', undefined, o.alpha);
 
         if (r.name) {
-          const font = `${o.stream_title_weight} ${m(o.stream_title_fontsize)}px ${o.stream_title_font}`;
-          draw.text(c, r.name, x1, y - m(o.stream_line_width) * 1.5, o.stream_title_color, font);
+          const font = `${o.stream_title_weight} ${o.stream_title_fontsize}px ${o.stream_title_font}`;
+          const y_text = y + 0.65 * (r.draw_title_under ? +o.stream_title_fontsize : -o.stream_title_fontsize);
+          const v_align = r.draw_title_under ? 'top' : 'bottom';
+          draw.text(c, r.name, x1, y_text, o.stream_title_color, font, null, v_align);
         }
       });
 
@@ -293,7 +297,7 @@ function roadmap(el_canvas, streams, options) {
       // if (stream.name) {
       //   c.beginPath();
       //   c.fillStyle    = o.stream_title_color;
-      //   c.font         = `400 ${m(o.stream_title_fontsize)}px Roboto`;
+      //   c.font         = `400 ${o.stream_title_fontsize}px Roboto`;
       //   c.textBaseline = 'bottom';
       //   c.textAlign    = 'left';
       //   c.fillText(stream.name, x1, y - o.stream_title_fontsize/2);
@@ -305,21 +309,24 @@ function roadmap(el_canvas, streams, options) {
         const df = date.fraction_of_date_range(deliv.date, [o.start, o.end]);
         const x = o.padding_h + o.w * df;
 
-        const r = o.stream_line_width;
-        const rk = 1 + (deliv !== selection.deliverable ? 0 : math.ease_out_cubic_simple(selection.progress) * 0.6);
+        const r = o.circle_radius;
+        const scale_factor = (
+          1 +
+          (deliv === selection.deliverable ? 0.6 * math.ease_out_cubic_simple(selection.progress) : 0)
+        );
         const rj = math.ease_out_cubic_simple(deliv.draw_progress || 0);
-        const stroke = 5/8 * o.stream_line_width * rk;
+        const stroke = 6/8 * o.stream_line_width * scale_factor;
 
         deliv.__position = [x, y];
 
         c.beginPath();
-        c.arc(x, y, m(r) * rk * rj || 0, 0, 2 * Math.PI);
+        c.arc(x, y, r * scale_factor * rj || 0, 0, 2 * Math.PI);
         c.fillStyle = 'white';
         c.fill();
 
         c.globalAlpha = alpha;
         c.strokeStyle = s.color;
-        c.lineWidth   = m(stroke);
+        c.lineWidth   = stroke;
         c.stroke();
         c.closePath();
         c.globalAlpha = 1;
@@ -352,9 +359,8 @@ function roadmap(el_canvas, streams, options) {
     const textsize__date  = draw.text(...targs__date, true);
     const txt_w = Math.max(textsize__title.width, textsize__date.width);
 
-    const popup_padding = m(28);
-    const popup_stroke = m(4);
-    const popup_radius = m(13);
+    const popup_padding = o.popup_title_size * 1.75;
+    const popup_radius  = popup_padding * 13 / 28;
     const popup_w = popup_padding + txt_w + popup_padding*3;
     const popup_h = 2*popup_padding + 1.5 * fontsize__title + fontsize__date;
 
