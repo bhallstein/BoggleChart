@@ -343,26 +343,24 @@ function roadmap(el_canvas, streams, options) {
     const d = selection.deliverable;
     const p = d.__position;
 
-    const fontsize__title = m(o.popup_title_size);
-    const fontsize__date = m(o.popup_date_size);
-    const font__title = `${o.popup_title_weight} ${fontsize__title}px ${o.popup_title_font}`;
-    const font__date  = `${o.popup_date_weight} ${fontsize__date}px ${o.popup_date_font}`;
+    const font__title = `${o.popup_title_weight} ${o.popup_title_size}px ${o.popup_title_font}`;
+    const font__date  = `${o.popup_date_weight} ${o.popup_title_size}px ${o.popup_date_font}`;
 
     // Calculate popup size
     const targs__title = [
       c, d.name || '[no name]', 0, 0,  o.popup_title_color, font__title, 0, 'top'
     ];
     const targs__date = [
-      c, date.friendly_date_string(d.date), 0, fontsize__title * 1.4, o.popup_date_color, font__date, 0, 'top'
+      c, date.friendly_date_string(d.date), 0, o.popup_title_size * 1.4, o.popup_date_color, font__date, 0, 'top'
     ];
     const textsize__title = draw.text(...targs__title, true);
     const textsize__date  = draw.text(...targs__date, true);
     const txt_w = Math.max(textsize__title.width, textsize__date.width);
 
-    const popup_padding = o.popup_title_size * 1.75;
+    const popup_padding = o.popup_title_size * 1.64;
     const popup_radius  = popup_padding * 13 / 28;
     const popup_w = popup_padding + txt_w + popup_padding*3;
-    const popup_h = 2*popup_padding + 1.5 * fontsize__title + fontsize__date;
+    const popup_h = 2*popup_padding + 1.5 * o.popup_title_size + o.popup_title_size;
 
 
     const popup_args = [ c, p[0], p[1], popup_w, popup_h, g.w, g.h, popup_radius, 'white' ];
