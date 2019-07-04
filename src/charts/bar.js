@@ -154,16 +154,17 @@ function bar_chart(el_canvas, data, options, category_labels) {
       return;
     }
 
-    const font = `400 ${o.labels_x_fontsize}px Roboto`;
-    const y    = g.h - 1.5 * o.labels_x_fontsize;
+    const fontsize = m(o.labels_x_fontsize);
+    const font = `400 ${fontsize}px Roboto`;
+    const y    = g.h - 1.5 * fontsize;
 
     const n = data.length;          // n is the number of categories
-    const m = data[0].data.length;  // m is the number of items
+    const n_items = data[0].data.length;
     for (let i = 0; i < category_labels.length; ++i) {
       const b = o.bar_width;
       const s = o.bar_spacing;
-      const q = n*b + (n-1)*s;  // q is the total width of an item group
-      const a = (1 - m*q) / m;  // a is the space between item groups
+      const q = n*b + (n-1)*s;              // q is the total width of an item group
+      const a = (1 - n_items*q) / n_items;  // a is the space between item groups
 
       let x = a/2 + a*i + q*(i+1/2);
       x = x * (g.w - axis_frame.l - axis_frame.r) + axis_frame.l;
