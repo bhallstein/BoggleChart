@@ -38,6 +38,7 @@ const default_opts = {
   labels_x_every:        1,
   labels_x_every_offset: 0,
   labels_x_origin:       true,
+  labels_x_right_axis:   true,
 
   labels_y:           true,
   labels_y_padding_l: 10,
@@ -156,8 +157,9 @@ function line_chart(el_canvas, data, options, category_labels) {
       return;
     }
 
+    const data_length = data[0].data.length;
     const w           = g.w - axis_frame.l - axis_frame.r;
-    const h_increment = w / (data[0].data.length - 1);
+    const h_increment = w / (data_length - 1);
     const y           = g.h - 0.8 * m(o.labels_x_fontsize);
     const font        = `400 ${m(o.labels_x_fontsize)}px Roboto`;
 
@@ -173,6 +175,10 @@ function line_chart(el_canvas, data, options, category_labels) {
       const i = item[0];
 
       if (i === 0 && !o.labels_x_origin) {
+        return;
+      }
+
+      if (i === data_length - 1 && !o.labels_x_right_axis) {
         return;
       }
 
@@ -491,13 +497,14 @@ line_chart.draw_gridlines = function(c, g, axis_frame, o, data) {
   }
 
   function draw_gridlines_x(y_btm, y_top, dash) {
-    const w         = g.w - axis_frame.l - axis_frame.r;
-    const increment = w / (data[0].data.length - 1);
-    const min       = o.y_axis && !o.x_axis_extend_left ? 1 : 0;
-    const max       = o.right_y_axis ? 2 : 1;
-    const d         = dash_style(dash, g);
+    const w           = g.w - axis_frame.l - axis_frame.r;
+		const data_length = data[0].data.length;
+    const increment   = w / (data_length - 1);
+    const min         = o.y_axis && !o.x_axis_extend_left ? 1 : 0;
+    const max         = o.right_y_axis ? 2 : 1;
+    const d           = dash_style(dash, g);
 
-    for (let i = min; i <= data[0].data.length - max; ++i) {
+    for (let i = min; i <= data_length - max; ++i) {
       if (o.gridlines_x_divisor && i%o.gridlines_x_divisor !== 0) {
         continue;
       }
