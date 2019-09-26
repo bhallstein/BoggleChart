@@ -498,7 +498,7 @@ line_chart.draw_gridlines = function(c, g, axis_frame, o, data) {
 
   function draw_gridlines_x(y_btm, y_top, dash) {
     const w           = g.w - axis_frame.l - axis_frame.r;
-		const data_length = data[0].data.length;
+    const data_length = data[0].data.length;
     const increment   = w / (data_length - 1);
     const min         = o.y_axis && !o.x_axis_extend_left ? 1 : 0;
     const max         = o.right_y_axis ? 2 : 1;
