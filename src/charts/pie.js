@@ -238,13 +238,28 @@ function pie_chart(el_canvas, data, options) {
   }
 
   function draw_inner_label() {
-    if (o.label || state.label.value) {
-      const font = `${o.label_weight} ${m(o.label_fontsize)}px ${o.label_font}`;
-
-      c.globalAlpha = state.label.opacity;
-      draw.text(c, state.label.value || o.label, g.center.x, g.center.y, o.label_color, font, 'center', 'middle');
-      c.globalAlpha = 1;
+    const label = o.label || state.label.value;
+    if (!label) {
+      return;
     }
+
+    c.globalAlpha = state.label.opacity;
+
+    const lines        = label.split("\n").filter(str => str.length > 0);
+    const line_spacing = 1.2;
+    const fs           = m(o.label_fontsize);
+    const font         = `${o.label_weight} ${fs}px ${o.label_font}`;
+    const draw_opts    = [c, 0, g.center.x, 0, o.label_color, font, 'center', 'middle'];
+
+    lines.forEach((line, i) => {
+      const n = lines.length;
+      draw_opts[3] = g.center.y - ((n-1)/2 - i) * line_spacing * fs;
+      draw_opts[1] = line;
+
+      draw.text.apply(null, draw_opts);
+    });
+
+    c.globalAlpha = 1;
   }
 
 
