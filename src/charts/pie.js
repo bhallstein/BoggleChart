@@ -253,7 +253,7 @@ function pie_chart(el_canvas, data, options) {
 
     lines.forEach((line, i) => {
       const n = lines.length;
-      draw_opts[3] = g.center.y - ((n-1)/2 - i) * line_spacing * fs;
+      draw_opts[3] = g.center.y + ((1-n)/2 + i) * line_spacing * fs;
       draw_opts[1] = line;
 
       draw.text.apply(null, draw_opts);
