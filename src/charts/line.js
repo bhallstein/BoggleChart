@@ -8,6 +8,7 @@ const default_opts = {
   min:  0,
   max:  100,
   step: (g, opts) => (opts.max - opts.min) / 5,
+  clip_to_y_axis: false,
 
   x_axis:             true,
   x_axis_width:       1,
@@ -218,13 +219,21 @@ function line_chart(el_canvas, data, options, category_labels) {
       }, [ ]);
 
       const line_segments = math.bezier_curve(c, arr, tension);
+
       const top_clip =
         axis_frame.t +
         (o.top_x_axis ? o.top_x_axis_width/2 : 0) +
         line_width/2;
 
+      const btm_clip = o.clip_to_y_axis ?
+        axis_frame.h + (o.y_axis ? o.y_axis_width/2 : 0) :
+        99999999;
+
       for (let i = 0, l = line_segments.length * line.progress/100; i < l; i += 2) {
-        c.lineTo(line_segments[i], Math.max(line_segments[i+1], top_clip));
+        const y_clipped_top = Math.max(line_segments[i+1], top_clip);
+        const y_clipped     = Math.min(y_clipped_top, btm_clip);
+
+        c.lineTo(line_segments[i], y_clipped);
       }
       c.stroke();
     }
