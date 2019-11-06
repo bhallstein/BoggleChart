@@ -200,7 +200,7 @@ function line_chart(el_canvas, data, options, category_labels) {
     const w         = g.w - axis_frame.l - axis_frame.r;
     const increment = w / (d.length - 1);
     let cur_x       = axis_frame.l;
-    const tension   = line.tension || 0.32;
+    const tension   = line.tension === undefined ? 0.32 : line.tension;
 
     function ny(y) {
       const y_range = g.h - axis_frame.t - axis_frame.b;
