@@ -226,7 +226,7 @@ function line_chart(el_canvas, data, options, category_labels) {
         line_width/2;
 
       const btm_clip = o.clip_to_y_axis ?
-        axis_frame.h + (o.y_axis ? o.y_axis_width/2 : 0) :
+        g.h - axis_frame.b + (o.y_axis ? o.y_axis_width/2 : 0) :
         99999999;
 
       for (let i = 0, l = line_segments.length * line.progress/100; i < l; i += 2) {
