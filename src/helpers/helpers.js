@@ -2,6 +2,19 @@
 // general helpers
 // -------------------------------
 
+function get_pixel_ratio(canvas) {
+  const context = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const bsr = (
+    context.webkitBackingStorePixelRatio ||
+    context.mozBackingStorePixelRatio ||
+    context.msBackingStorePixelRatio ||
+    context.oBackingStorePixelRatio ||
+    context.backingStorePixelRatio || 1
+  );
+  return dpr / bsr;
+}
+
 function get_opts(default_opts, options, g) {
   const opts = Object.assign({}, default_opts, options);
 
@@ -87,6 +100,7 @@ function getJSON(url, cb_success, cb_err, cb_progr) {
 
 
 export default {
+  get_pixel_ratio,
   get_opts,
   get_offset,
   get_offset_in_canvas,

@@ -16,19 +16,6 @@ function create_canvas(el_container) {
   const el_canvas = document.createElement('canvas');
   const test_canvas = document.createElement('canvas');
 
-  function get_pixel_ratio() {
-    const context = test_canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
-    const bsr = (
-      context.webkitBackingStorePixelRatio ||
-      context.mozBackingStorePixelRatio ||
-      context.msBackingStorePixelRatio ||
-      context.oBackingStorePixelRatio ||
-      context.backingStorePixelRatio || 1
-    );
-    return dpr / bsr;
-  }
-
   function set_canvas_size(canvas, w, h, pixel_ratio) {
     canvas.width        = w * pixel_ratio;
     canvas.height       = h * pixel_ratio;
@@ -43,7 +30,7 @@ function create_canvas(el_container) {
     const container_h = parseInt(s.height);
 
     if (container_w && container_h) {
-      set_canvas_size(el_canvas, container_w, container_h, get_pixel_ratio());
+      set_canvas_size(el_canvas, container_w, container_h, helpers.get_pixel_ratio(test_canvas));
 
       if (!suppress_onwards_event) {
         el_canvas.dispatchEvent(new CustomEvent('BoggleChart:resize'));
