@@ -21,8 +21,8 @@ const default_opts = {
   label_position:     'axis',  // or 'segment'
   label_font_size:    14,
   label_font_weight:  400,
-  label_font:         '"Helvetica Neue", Helvetica',
   label_color:        'black',
+  label_font:         'sans-serif',
 
   padding: 0,
 };

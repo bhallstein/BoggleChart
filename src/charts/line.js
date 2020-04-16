@@ -26,6 +26,7 @@ const default_opts = {
   y_axis_name:          false,    // false or string
   y_axis_name_fontsize: 12,
   y_axis_name_color:    'black',
+  y_axis_name_font:     null,
   y_axis_name_padding:  20,
 
   right_y_axis:       false,
@@ -36,6 +37,7 @@ const default_opts = {
   labels_x_padding:      12,
   labels_x_fontsize:     12,
   labels_x_color:        'black',
+  labels_x_font:         null,
   labels_x_every:        1,
   labels_x_every_offset: 0,
   labels_x_origin:       true,
@@ -46,6 +48,7 @@ const default_opts = {
   labels_y_padding_r: 10,
   labels_y_fontsize:  12,
   labels_y_color:     'black',
+  labels_y_font:      null,
   labels_y_origin:    true,
   labels_y_max:       true,
   labels_y_unit:      '',
@@ -65,7 +68,10 @@ const default_opts = {
 
   legend:          false,
   legend_fontsize: 12,
+  legend_font:     null,
   legend_color:    'black',
+
+  default_font:   'sans-serif',
 
   interactions:                 false,
   hover_dropline_width:         1,
@@ -74,6 +80,7 @@ const default_opts = {
   hover_value_background_color: '#ddd',
   hover_value_foreground_color: 'black',
   hover_value_draw_callback:    null,
+  hover_value_font:             null,
 
   __opts_not_to_process_as_functions: [
     'hover_value_draw_callback',
@@ -162,7 +169,7 @@ function line_chart(el_canvas, data, options, category_labels) {
     const w           = g.w - axis_frame.l - axis_frame.r;
     const h_increment = w / (data_length - 1);
     const y           = g.h - 0.8 * m(o.labels_x_fontsize);
-    const font        = `400 ${m(o.labels_x_fontsize)}px Roboto`;
+    const font        = `400 ${m(o.labels_x_fontsize)}px ${o.labels_x_font || o.default_font}`;
 
     let labels;
     if (typeof category_labels === 'function') {
@@ -293,7 +300,7 @@ function line_chart(el_canvas, data, options, category_labels) {
     }
     else {
       const fontsize = Math.min(0.08 * g.h, m(15));
-      c.font         = `400 ${fontsize}px Roboto`;
+      c.font         = `400 ${fontsize}px ${o.hover_value_font || o.default_font}`;
       c.textBaseline = 'top';
       c.textAlign    = 'left';
       const v_hpad = m(8);
@@ -441,7 +448,7 @@ line_chart.y_axis_name_width = function(o, g) {
 
 line_chart.get_y_label_font = function(c, g, o) {
   const fontsize = g.pr * Math.min(o.labels_y_fontsize, 17);
-  return `400 ${fontsize}px Roboto`;
+  return `400 ${fontsize}px ${o.labels_y_font || o.default_font}`;
 };
 
 line_chart.set_y_label_font = function(c, g, o) {
@@ -573,7 +580,7 @@ line_chart.draw_y_axis_name = function(c, g, axis_frame, o) {
   const fs   = g.pr * o.y_axis_name_fontsize;
   const x    = 1.25 * fs;
   const y    = g.h - axis_frame.b - axis_frame.h/2;
-  const font = `400 ${fs}px Roboto`;
+  const font = `400 ${fs}px ${o.y_axis_name_font || o.default_font}`;
 
   c.save();
   c.translate(x, y);
@@ -590,7 +597,7 @@ line_chart.draw_legend = function(c, g, axis_frame, o, data, measure_rows) {
   }
 
   const w = axis_frame.w;
-  const font = `400 ${g.pr * o.legend_fontsize}px Roboto`;
+  const font = `400 ${g.pr * o.legend_fontsize}px ${o.legend_font || o.default_font}`;
   const half_fs = g.pr * o.legend_fontsize / 2;
   const legend_item_spacing = g.pr * o.legend_fontsize * 1.9;
   const legend_icon_size    = g.pr * o.legend_fontsize * 0.6;
