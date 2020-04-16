@@ -169,6 +169,11 @@ function sum(arr, summation_property) {
 }
 
 
+function max(arr) {
+  return arr.reduce((accum, x) => Math.max(accum, x), null);
+}
+
+
 function delayed_time_series(n_items, item_length, delay, t) {
   // - Return an array of item-relative times for a uniformly-delayed set of items
   //   within an overall time period.
@@ -197,6 +202,7 @@ export default {
   angle_from_vertical,
   format_number,
   sum,
+  max,
   delayed_time_series,
 };
 
