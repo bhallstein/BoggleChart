@@ -14,10 +14,10 @@ const default_opts = {
   cutout_radius: 0,
   outer_padding: 4,
 
-  label_color: 'black',
+  label_color:    'black',
   label_fontsize: 14,
-  label_font: '"Helvetica Neue", Helvetica',
-  label_weight: 600,
+  label_font:     'sans-serif',
+  label_weight:   600,
 
   interactions: false,
   click_callback: null,

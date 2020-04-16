@@ -31,12 +31,14 @@ const default_opts = {
   labels_x_padding:  (g) => 0.02 * g.h,
   labels_x_fontsize: (g) => 0.04 * g.h,
   labels_x_color:    'black',
+  labels_x_font:     null,
 
   labels_y:             true,
   labels_y_padding_l:   10,
   labels_y_padding_r:   10,
   labels_y_fontsize:    (g) => 0.035 * g.h,
   labels_y_color:       'black',
+  labels_y_font:        null,
   labels_y_labelOrigin: true,
   labels_y_labelMax:    true,
   labels_y_unit:        '',
@@ -49,6 +51,8 @@ const default_opts = {
 
   bar_width: 0.03,
   bar_spacing: 0.02,
+
+  default_font: 'sans-serif',
 };
 
 
@@ -155,7 +159,7 @@ function bar_chart(el_canvas, data, options, category_labels) {
     }
 
     const fontsize = m(o.labels_x_fontsize);
-    const font = `400 ${fontsize}px Roboto`;
+    const font = `400 ${fontsize}px ${o.labels_x_font || o.default_font}`;
     const y    = g.h - 1.5 * fontsize;
 
     const n = data.length;          // n is the number of categories

@@ -23,7 +23,7 @@ const default_opts = {
 
   header:                 false,
   header_fontsize:        g => g.h * 0.024,
-  header_font:            '"Helvetica Neue", Helvetica, Arial',
+  header_font:            null,
   header_color:           '#a9a9a9',
   header_weight:          600,
   header_vpadding:        g => g.h * 0.009,
@@ -31,7 +31,7 @@ const default_opts = {
   header_gridlines_color: '#a9a9a9',
   header_gridlines_width: 1.8,
 
-  stream_title_font:     '"Helvetica Neue", Helvetica, Arial',
+  stream_title_font:     null,
   stream_title_color:    '#333',
   stream_title_weight:   600,
   stream_title_fontsize: g => g.h * 0.019,
@@ -43,7 +43,7 @@ const default_opts = {
   year_progress: false,
   year_progress_color: '#f8f8f8',
 
-  popup_title_font:   '"Helvetica Neue", Helvetica, Arial',
+  popup_title_font:   null,
   popup_title_weight: 900,
   popup_title_color:  'black',
   popup_title_size:   g => g.h * 0.028,
@@ -53,6 +53,8 @@ const default_opts = {
   popup_date_size:    g => g.h * 0.028,
 
   padding_h: 40,
+
+  default_font: 'sans-serif',
 };
 
 const stream_defaults = {
@@ -180,7 +182,7 @@ function roadmap(el_canvas, streams, options) {
       return;
     }
 
-    const font = `${o.header_weight} ${o.header_fontsize}px ${o.header_font}`;
+    const font = `${o.header_weight} ${o.header_fontsize}px ${o.header_font || o.default_font}`;
 
     function divider(x) {
       const y1 = m(o.header_vpadding);
@@ -285,7 +287,7 @@ function roadmap(el_canvas, streams, options) {
         draw.line(c, x1, y, x2_actual, y, s.color, o.stream_line_width, 'round', undefined, o.alpha);
 
         if (r.name) {
-          const font = `${o.stream_title_weight} ${o.stream_title_fontsize}px ${o.stream_title_font}`;
+          const font = `${o.stream_title_weight} ${o.stream_title_fontsize}px ${o.stream_title_font || o.default_font}`;
           const y_text = y + 0.65 * (r.draw_title_under ? +o.stream_title_fontsize : -o.stream_title_fontsize);
           const v_align = r.draw_title_under ? 'top' : 'bottom';
           draw.text(c, r.name, x1, y_text, o.stream_title_color, font, null, v_align);
@@ -343,8 +345,8 @@ function roadmap(el_canvas, streams, options) {
     const d = selection.deliverable;
     const p = d.__position;
 
-    const font__title = `${o.popup_title_weight} ${o.popup_title_size}px ${o.popup_title_font}`;
-    const font__date  = `${o.popup_date_weight} ${o.popup_title_size}px ${o.popup_date_font}`;
+    const font__title = `${o.popup_title_weight} ${o.popup_title_size}px ${o.popup_title_font || o.default_font}`;
+    const font__date  = `${o.popup_date_weight} ${o.popup_title_size}px ${o.popup_date_font || o.default_font}`;
 
     // Calculate popup size
     const targs__title = [
