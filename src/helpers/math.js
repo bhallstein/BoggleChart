@@ -174,6 +174,22 @@ function max(arr) {
 }
 
 
+function sensible_limits(data_max) {
+  const n_digits = `${data_max}`.length;
+  const digit_divisor = Math.pow(10, n_digits - 1)
+  const y = data_max / digit_divisor;
+
+  const ceil = Math.ceil(y);
+  const max = ceil === 9 ? 10 : ceil;
+  const steps = [ 5, 4, 6, 4, 5, 6, 7, 4, '_', 5 ][max-1];
+
+  return {
+    steps,
+    max: max * digit_divisor,
+  };
+}
+
+
 function delayed_time_series(n_items, item_length, delay, t) {
   // - Return an array of item-relative times for a uniformly-delayed set of items
   //   within an overall time period.
@@ -203,6 +219,7 @@ export default {
   format_number,
   sum,
   max,
+  sensible_limits,
   delayed_time_series,
 };
 
