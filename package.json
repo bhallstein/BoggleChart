@@ -3,10 +3,7 @@
   "description": "Charts for lemurs",
   "version": "0.1.35",
   "author": "Ben Hall <ben@ben.am> (https://ben.am/)",
-  "license": {
-    "type": "MIT",
-    "url": "https://opensource.org/licenses/MIT"
-  },
+  "license": "MIT",
   "homepage": "https://github.com/bhallstein/BoggleChart",
   "repository": {
     "type": "git",
